@@ -21,7 +21,9 @@ body{
 
 *{
     font-family: $font-stack;
+    flex-shrink:0;
 }
+
 
 .app{
     position:fixed;
@@ -64,6 +66,10 @@ body{
     padding:0.5rem 0rem;
     background-color:#ccc;
     border-bottom:#999 solid 1px;
+
+    .mode-form{
+        align-items:center;
+    }
 }
 
 .app-panel{
@@ -114,4 +120,14 @@ table{
     .status-msg{
         padding:0 1rem;
     }
+}
+
+.page{
+    height:700px;
+}
+
+
+app-simulator, app-simulations, app-reports{
+    max-height:800px;
+    flex-direction:column!important; flex-grow:1!important;
 }

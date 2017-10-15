@@ -1,0 +1,84 @@
+<div class="page c f1">
+
+    <div class="app-mode r">
+      <form class="mode-form r f1">
+        &nbsp;&nbsp;Simulation Name&nbsp;
+        <input type="text" placeholder="Simulation Name" [(ngModel)]="simulationName" name="sname"/>
+
+        &nbsp;&nbsp;Rebalancing Method&nbsp;
+        <input type="text" placeholder="Rebalancing Method" [(ngModel)]="rebalancingMethod" name="smethod"/>
+        &nbsp;&nbsp;Mode&nbsp;
+        <select name="simulationType" [(ngModel)]="simulationType">
+          <option value="manual">Manual Simulation</option>
+          <option value="batch">Batch Simulation</option>
+        </select>
+        &nbsp;&nbsp;Period&nbsp;
+        <select name="period" [(ngModel)]="period">
+          <option value="1D">1 Day</option>
+          <option value="3D">3 Day</option>
+          <option value="1W">1 Week</option>
+          <option value="2W">2 Week</option>
+          <option value="1W">1 Month</option>
+          <option value="1Q">1 Quarter</option>
+          <option value="2Q">2 Quarter</option>
+          <option value="1Y">1 Year</option>
+        </select>
+        &nbsp;&nbsp;
+        <div class="f1"></div>
+        <button>Confirm</button>
+        &nbsp;&nbsp;
+      </form>
+    </div>
+
+    <div class="app-main f1 r">
+      <div class="app-panel c f1" *ngIf="simulationType == 'manual'">
+        <div class="step r">
+          Market Returns
+          <div class="f1"></div>
+          <button (click)="updateReturns()">Import</button>
+        </div>
+        <div class="step r">
+          Private Deals
+          <div class="f1"></div>
+          <button (click)="updatePrivateDeals()">Import</button>
+        </div>
+        <div class="step r">
+          Rebalancing Deals
+          <div class="f1"></div>
+          <button>Import</button>
+        </div>
+      </div>
+      <div class="app-body c f2">
+        <div class="f162 c ofys">
+  
+          <table>
+            <tr>
+              <th>Asset Type</th>
+              <th>Asset Name</th>
+              <th>Beta</th>
+              <th>ROI</th>
+              <th>Liquidity</th>
+              <th>Exposure(M)</th>
+              <th *ngIf="dayChange">Day Chg.</th>
+            </tr>
+            <tr *ngFor="let s of securities"  [ngClass]="{'new-deal' : s.newDeal}">
+              <td class="ac">{{s.private ? "private":"public"}}</td>
+              <td>{{s.securityName}}</td>
+              <td class="ar">{{s.risk | number : '1.2-2' }}</td>
+              <td class="ar"[ngClass]="{'gain' : s.return > 0, 'loss':s.return < 0}">{{s.return*100 | number : '1.2-2' }}%</td>
+              <td class="ar">{{s.liquidity | number : '1.2-2' }}</td>
+              <td class="ar">{{s.exposure/1000000| number:'.0'}}</td>
+              <td class="ar"  [ngClass]="{'gain' : s.gain, 'loss':!s.gain}" *ngIf="dayChange">{{s.dayChange*100 | number : '1.2-2' }}%</td>
+            </tr>
+          </table>
+  
+        </div>
+        <div class="status-panel f1 c ofys">
+          <div class="status-msg" *ngFor="let msg of messageQueue">
+            {{msg}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
