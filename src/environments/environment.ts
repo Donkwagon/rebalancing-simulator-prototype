@@ -1,8 +1,11 @@
-// The file contents for the current environment will overwrite these during build.
-// The build system defaults to the dev environment which uses `environment.ts`, but if you do
-// `ng build --env=prod` then `environment.prod.ts` will be used instead.
-// The list of which env maps to which file can be found in `.angular-cli.json`.
-
 export const environment = {
-  production: false
+  production: false,
+  firebase: {
+    apiKey: 'AIzaSyB6vXs-Lat1cBJ1oG-uUIph7Q9tqYNYZ-g',
+    authDomain: 'rebalancing-simulator.firebaseapp.com',
+    databaseURL: 'https://rebalancing-simulator.firebaseio.com',
+    projectId: 'rebalancing-simulator',
+    storageBucket: 'rebalancing-simulator.appspot.com',
+    messagingSenderId: '294681583174'
+  }
 };

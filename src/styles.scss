@@ -34,15 +34,36 @@ body{
     width:100%;
     background-color:#333;
     color:#eee;
+    font-size:1.1rem;
+    color:rgba(252, 243, 193, 1);
 
     .app-nav{
         padding:0 1rem;
     }
 }
 
+.app-nav-bar{
+     background-color:#999;
+     border-top:#aaa solid 1px;
+     border-bottom:#777 solid 1px;
+    
+    .app-nav{
+        padding:0.4rem 1rem;
+        font-weight:bold;
+        border-right:#777 solid 1px;
+        font-size:1.1rem;
+        
+        &:hover{
+            cursor:pointer;
+            background-color:#aaa;
+        }
+    }
+}
+
 .app-mode{
     padding:0.5rem 0rem;
     background-color:#ccc;
+    border-bottom:#999 solid 1px;
 }
 
 .app-panel{
@@ -78,7 +99,7 @@ table{
     }
 
     .new-deal{
-        background-color:yellow!important;
+        background-color:rgba(252, 243, 193, 1)!important;
     }
 
     // .gain{color:green;}
@@ -88,7 +109,7 @@ table{
 .status-panel{
     background:linear-gradient(rgba(192, 173, 113, 0.7),rgba(192, 168, 108, 0.7));
     background:white;
-    border-top:#ccc solid 1px;
+    border:#ccc solid 1px;
 
     .status-msg{
         padding:0 1rem;
