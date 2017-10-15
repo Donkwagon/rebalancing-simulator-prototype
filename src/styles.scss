@@ -122,6 +122,24 @@ table{
     }
 }
 
+.session-control-panel{
+    position:fixed;
+    left:0;bottom:0;
+    width:100%;
+    padding:0.5rem 0;
+    background-color:#ccc;
+    border-top:#aaa solid 1px;
+
+    .control-action{
+        padding:0 1rem;
+        font-size:1.1rem;
+
+        button{
+            cursor:pointer;
+        }
+    }
+}
+
 .page{
     height:700px;
 }

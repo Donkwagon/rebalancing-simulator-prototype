@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { SecurityService } from './../@core/services/security.service';
 import { Security } from './../@core/classes/security';
+import { Portfolio } from './../@core/classes/portfolio';
+import { Simulation } from './../@core/classes/simulation';
 
 import { AngularFirestore } from 'angularfire2/firestore';
 
@@ -13,22 +15,18 @@ import { AngularFirestore } from 'angularfire2/firestore';
 
 export class SimulatorComponent implements OnInit {
 
+  simulation: Simulation;
+  porfolio: Portfolio;
+
   securities: Security[];
   messageQueue: any[];
   dayChange: boolean;
 
-  simulationName: string;
-  rebalanceMethod: string;
-  simulationType: string;
-  period: string;
 
   constructor(private db: AngularFirestore, private securityService: SecurityService) {
     this.messageQueue = [];
     this.dayChange = false;
-    this.simulationType = 'manual';
-    this.simulationName = '';
-    this.rebalanceMethod = '';
-    this.period = '1D';
+    this.simulation = new Simulation();
   }
 
   ngOnInit() {
@@ -79,6 +77,10 @@ export class SimulatorComponent implements OnInit {
       }
     });
 
+  }
+
+  initializeSimulation() {
+    this.simulation = new Simulation();
   }
 
   updateReturns() {

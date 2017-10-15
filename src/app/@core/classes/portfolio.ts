@@ -1,4 +1,4 @@
-export class Porfolio {
+export class Portfolio {
 
     _id?: string;
     private: boolean;
