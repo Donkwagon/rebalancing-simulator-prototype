@@ -4,7 +4,6 @@ import { Security } from './../@core/classes/security';
 import { Portfolio } from './../@core/classes/portfolio';
 import { Simulation } from './../@core/classes/simulation';
 
-import { AngularFirestore } from 'angularfire2/firestore';
 
 @Component({
   selector: 'app-simulator',
@@ -23,7 +22,7 @@ export class SimulatorComponent implements OnInit {
   dayChange: boolean;
 
 
-  constructor(private db: AngularFirestore, private securityService: SecurityService) {
+  constructor(private securityService: SecurityService) {
     this.messageQueue = [];
     this.dayChange = false;
     this.simulation = new Simulation();
