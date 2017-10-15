@@ -10,6 +10,13 @@
         <option value="multiple">Methods Comparison</option>
       </select>
       &nbsp;&nbsp;
+      &nbsp;&nbsp;Date Sensitive&nbsp;
+      <select name="rebalancingMode" [(ngModel)]="simulation.rebalancingMode">
+        <option value="single">Specific Date Conditions</option>
+        <option value="multiple">Arbitrary Dates</option>
+        <option value="multiple">Data Contains Date Info</option>
+      </select>
+      &nbsp;&nbsp;
     </form>
   </div>
   <div class="app-mode r">
@@ -41,7 +48,7 @@
     </form>
   </div>
 
-  <div class="app-main f1 r">
+  <div class="app-main f1 r" *ngIf="configStatus">
     <div class="app-panel c f1" *ngIf="simulation.simulationType == 'manual'">
       <div class="step r">
         <b>Manual Import Panel</b>
@@ -81,7 +88,7 @@
             <td class="ar">{{s.risk | number : '1.2-2' }}</td>
             <td class="ar"[ngClass]="{'gain' : s.return > 0, 'loss':s.return < 0}">{{s.return*100 | number : '1.2-2' }}%</td>
             <td class="ar">{{s.liquidity | number : '1.2-2' }}</td>
-            <td class="ar">{{s.exposure/1000000| number:'.0'}}</td>
+            <td class="ar">{{s.exposure/1000000| number:'.1'}}</td>
             <td class="ar"  [ngClass]="{'gain' : s.gain, 'loss':!s.gain}" *ngIf="dayChange">{{s.dayChange*100 | number : '1.2-2' }}%</td>
           </tr>
         </table>
