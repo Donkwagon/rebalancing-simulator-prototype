@@ -1,17 +1,19 @@
 import { Component, OnInit } from '@angular/core';
+
 import { SecurityService } from './../@core/services/security.service';
+import { SimulationService } from './../@core/services/simulation.service';
+import { PortfolioService } from './../@core/services/portfolio.service';
+
 import { Security } from './../@core/classes/security';
 import { Portfolio } from './../@core/classes/portfolio';
 import { Simulation } from './../@core/classes/simulation';
-
-import { AngularFirestore, AngularFirestoreDocument, AngularFirestoreCollection } from 'angularfire2/firestore';
 import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-simulator',
   templateUrl: './simulator.component.html',
   styleUrls: ['./simulator.component.scss'],
-  providers: [ SecurityService ]
+  providers: [ SecurityService, SimulationService, PortfolioService ]
 })
 
 export class SimulatorComponent implements OnInit {
@@ -33,13 +35,7 @@ export class SimulatorComponent implements OnInit {
   targetLiquidity: number;
 
 
-  simulations: AngularFirestoreCollection<Simulation>;
-  portfolios: AngularFirestoreCollection<Portfolio>;
-
-  constructor(private afs: AngularFirestore, private securityService: SecurityService) {
-
-    this.simulations = afs.collection<Simulation>('simulations');
-    this.portfolios = afs.collection<Portfolio>('portfolios');
+  constructor(private securityService: SecurityService) {
 
     this.messageQueue = [];
 
