@@ -67,13 +67,12 @@ export class SimulatorComponent implements OnInit {
   initializeSimulation() {
 
     this.securities = [];
-    this.portfolio = new Portfolio();
-
+    this.portfolio = new Portfolio(this.simulation._id);
     this.simulationService.createSimulation(this.simulation).then(res => {
       if (res) {
         console.log(res);
       }
-    })
+    });
 
     this.configStatus = true;
 
@@ -123,11 +122,16 @@ export class SimulatorComponent implements OnInit {
           this.messageQueue.push(msg);
 
         }
+
+        this.portfolio.securities = this.securities;
+        this.getPortfolioMatrics();
+        this.savePortfolio();
       });
 
     }
 
   }
+
 
   crawl() {
     this.crawlerService.RunCrawler().then(res => {
@@ -142,6 +146,7 @@ export class SimulatorComponent implements OnInit {
       const r = (this.randn_bm() ) / 40 ;
       r > 0 ? s.gain = true : s.gain = false;
       s.dayChange = r;
+      s.expectedReturn += r / 100;
     });
     this.dayChange = true;
     this.messageQueue.push('Market return updated');
@@ -175,7 +180,7 @@ export class SimulatorComponent implements OnInit {
   }
 
   assignExposure(num) {
-    const mean = this.totalValue / num;
+    const mean = this.totalValue / 500;
     const exposure = (mean * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
     if (this.assignableValue > 3 * exposure) {
       this.assignableValue = this.assignableValue - exposure;
@@ -209,6 +214,7 @@ export class SimulatorComponent implements OnInit {
 
   rebalance() {
     // dummy method
+    // calculate discrepancy to target
   }
 
   // dummy rebalance methods
@@ -249,7 +255,13 @@ export class SimulatorComponent implements OnInit {
     this.messageQueue.push('-- Liquidity: ' + Math.round(this.portfolio.liquidity * 100) / 100);
   }
 
-  savePortfolio() {}
+  savePortfolio() {
+    this.portfolioService.createPortfolio(this.portfolio).then(res => {
+      if (res) {
+        console.log(res);
+      }
+    });
+  }
 
   saveSimulation() {}
 

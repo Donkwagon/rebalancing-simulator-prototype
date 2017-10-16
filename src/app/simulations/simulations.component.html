@@ -9,11 +9,12 @@
       <th>Date</th>
     </tr>
     <tr *ngFor="let simulation of simulations">
-      <td class="ac">{{simulation.name}}</td>
-      <td>{{simulation.rebalanceMethod}}</td>
+      <td class="ac">{{simulation.simulationName}}</td>
+      <td>{{simulation.rebalancingMethod}}</td>
       <td>{{simulation.rebalancingMode}}</td>
       <td>{{simulation.simulationType}}</td>
       <td>{{simulation.period}}</td>
       <td>{{simulation.createDate}}</td>
     </tr>
   </table>
+<router-outlet></router-outlet>

@@ -86,7 +86,7 @@
           </tr>
           <tr *ngFor="let s of securities"  [ngClass]="{'new-deal' : s.newDeal}">
             <td class="ac">{{s.private ? "private":"public"}}</td>
-            <td>{{s.Issuer}}</td>
+            <td>{{s.Symbol}} {{s.Issuer}}</td>
             <td class="ar">{{s.risk | number : '1.2-2' }}</td>
             <td class="ar"[ngClass]="{'gain' : s.return > 0, 'loss':s.return < 0}">{{s.return*100 | number : '1.2-2' }}%</td>
             <td class="ar"[ngClass]="{'gain' : s.expectedReturn > 0, 'loss':s.expectedReturn < 0}">{{s.expectedReturn*100 | number : '1.2-2' }}%</td>

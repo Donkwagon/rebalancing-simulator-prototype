@@ -16,13 +16,15 @@ import { AppComponent } from './app.component';
 import { SimulatorComponent } from './simulator/simulator.component';
 import { SimulationsComponent } from './simulations/simulations.component';
 import { ReportsComponent } from './reports/reports.component';
+import { SimulationComponent } from './simulations/simulation/simulation.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SimulatorComponent,
     SimulationsComponent,
-    ReportsComponent
+    ReportsComponent,
+    SimulationComponent
   ],
   imports: [
     AppRoutingModule,

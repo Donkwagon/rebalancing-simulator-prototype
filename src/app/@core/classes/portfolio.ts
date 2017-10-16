@@ -1,7 +1,7 @@
 export class Portfolio {
 
     _id?: string;
-    private: boolean;
+    simulationId: string;
 
     securities: any[];
 
@@ -16,7 +16,7 @@ export class Portfolio {
     numPrivate: number;
     numPublic: number;
 
-    constructor() {
-
+    constructor(simulationId) {
+        this.simulationId = simulationId;
     }
 }
