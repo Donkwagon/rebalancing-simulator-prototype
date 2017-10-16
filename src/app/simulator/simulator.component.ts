@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { SecurityService } from './../@core/services/security.service';
 import { SimulationService } from './../@core/services/simulation.service';
 import { PortfolioService } from './../@core/services/portfolio.service';
+import { CrawlerService } from './../@core/services/crawler.service';
 
 import { Security } from './../@core/classes/security';
 import { Portfolio } from './../@core/classes/portfolio';
@@ -13,7 +14,7 @@ import { Observable } from 'rxjs/Observable';
   selector: 'app-simulator',
   templateUrl: './simulator.component.html',
   styleUrls: ['./simulator.component.scss'],
-  providers: [ SecurityService, SimulationService, PortfolioService ]
+  providers: [ SecurityService, SimulationService, PortfolioService, CrawlerService ]
 })
 
 export class SimulatorComponent implements OnInit {
@@ -35,7 +36,12 @@ export class SimulatorComponent implements OnInit {
   targetLiquidity: number;
 
 
-  constructor(private securityService: SecurityService) {
+  constructor(
+    private securityService: SecurityService,
+    private crawlerService: CrawlerService,
+    private simulationService: SimulationService,
+    private portfolioService: PortfolioService
+  ) {
 
     this.messageQueue = [];
 
@@ -62,6 +68,12 @@ export class SimulatorComponent implements OnInit {
 
     this.securities = [];
     this.portfolio = new Portfolio();
+
+    this.simulationService.createSimulation(this.simulation).then(res => {
+      if (res) {
+        console.log(res);
+      }
+    })
 
     this.configStatus = true;
 
@@ -115,6 +127,14 @@ export class SimulatorComponent implements OnInit {
 
     }
 
+  }
+
+  crawl() {
+    this.crawlerService.RunCrawler().then(res => {
+      if (res) {
+        console.log(res);
+      }
+    });
   }
 
   updateReturns() {

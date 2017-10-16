@@ -5,7 +5,7 @@ import 'rxjs/add/operator/toPromise';
 
 @Injectable()
 export class PortfolioService {
-    private PortfoliosUrl = '/apis/s';
+    private PortfoliosUrl = '/apis/p';
 
     constructor (private http: Http) {}
 

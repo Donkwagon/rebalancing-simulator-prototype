@@ -39,7 +39,7 @@ updateIEXListing = function(listing, i, len) {
     if(i < len){
         var symbol = listing[i].Symbol;
 
-        db.collection(SECURITY_COLLECTION).findOneAndUpdate({'symbol': symbol}, {$set:{IEXListed:true}}, function(err, doc) {
+        db.collection(SECURITY_COLLECTION).save(listing[i], function(err, doc) {
             if (err) {
                 handleError(res, err.message, "Failed to update security");
                 i++;

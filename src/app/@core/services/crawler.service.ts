@@ -9,7 +9,7 @@ export class CrawlerService {
     constructor (private http: Http) {}
 
     RunCrawler(): Promise<any | void> {
-      return this.http.get(this.CrawlersUrl)
+      return this.http.get(this.CrawlersUrl + "/IEX-listing")
                  .toPromise()
                  .then(response => response.json() as any)
                  .catch(this.handleError);

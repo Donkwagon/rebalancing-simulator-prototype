@@ -1,3 +1,19 @@
-<p>
-  simulations works!
-</p>
+
+<table>
+    <tr>
+      <th>Simulation Name</th>
+      <th>Rebalancing Method</th>
+      <th>Mode</th>
+      <th>Type</th>
+      <th>Period</th>
+      <th>Date</th>
+    </tr>
+    <tr *ngFor="let simulation of simulations">
+      <td class="ac">{{simulation.name}}</td>
+      <td>{{simulation.rebalanceMethod}}</td>
+      <td>{{simulation.rebalancingMode}}</td>
+      <td>{{simulation.simulationType}}</td>
+      <td>{{simulation.period}}</td>
+      <td>{{simulation.createDate}}</td>
+    </tr>
+  </table>

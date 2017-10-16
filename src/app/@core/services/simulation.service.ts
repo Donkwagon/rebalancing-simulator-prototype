@@ -5,7 +5,7 @@ import 'rxjs/add/operator/toPromise';
 
 @Injectable()
 export class SimulationService {
-    private SimulationsUrl = '/apis/s';
+    private SimulationsUrl = '/apis/simu';
 
     constructor (private http: Http) {}
 
