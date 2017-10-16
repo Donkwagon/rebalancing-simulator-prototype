@@ -12,8 +12,8 @@
       &nbsp;&nbsp;
       &nbsp;&nbsp;Date Sensitive&nbsp;
       <select name="rebalancingMode" [(ngModel)]="simulation.rebalancingMode">
-        <option value="single">Specific Date Conditions</option>
-        <option value="multiple">Arbitrary Dates</option>
+        <option value="single">Specific Start Date</option>
+        <option value="multiple">Date Independent</option>
         <option value="multiple">Data Contains Date Info</option>
       </select>
       &nbsp;&nbsp;
@@ -78,6 +78,7 @@
             <th>Asset Name</th>
             <th>Beta</th>
             <th>ROI</th>
+            <th>Expct. ROI</th>
             <th>Liquidity</th>
             <th>Exposure(M)</th>
             <th *ngIf="dayChange">Day Chg.</th>
@@ -87,6 +88,7 @@
             <td>{{s.securityName}}</td>
             <td class="ar">{{s.risk | number : '1.2-2' }}</td>
             <td class="ar"[ngClass]="{'gain' : s.return > 0, 'loss':s.return < 0}">{{s.return*100 | number : '1.2-2' }}%</td>
+            <td class="ar"[ngClass]="{'gain' : s.expectedReturn > 0, 'loss':s.expectedReturn < 0}">{{s.expectedReturn*100 | number : '1.2-2' }}%</td>
             <td class="ar">{{s.liquidity | number : '1.2-2' }}</td>
             <td class="ar">{{s.exposure/1000000| number:'.1'}}</td>
             <td class="ar"  [ngClass]="{'gain' : s.gain, 'loss':!s.gain}" *ngIf="dayChange">{{s.dayChange*100 | number : '1.2-2' }}%</td>

@@ -4,6 +4,8 @@ import { Security } from './../@core/classes/security';
 import { Portfolio } from './../@core/classes/portfolio';
 import { Simulation } from './../@core/classes/simulation';
 
+import { AngularFirestore, AngularFirestoreDocument, AngularFirestoreCollection } from 'angularfire2/firestore';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-simulator',
@@ -31,8 +33,13 @@ export class SimulatorComponent implements OnInit {
   targetLiquidity: number;
 
 
+  simulations: AngularFirestoreCollection<Simulation>;
+  portfolios: AngularFirestoreCollection<Portfolio>;
 
-  constructor(private securityService: SecurityService) {
+  constructor(private afs: AngularFirestore, private securityService: SecurityService) {
+
+    this.simulations = afs.collection<Simulation>('simulations');
+    this.portfolios = afs.collection<Portfolio>('portfolios');
 
     this.messageQueue = [];
 
@@ -45,9 +52,10 @@ export class SimulatorComponent implements OnInit {
     this.totalValue = 100000000000;
     this.assignableValue = 100000000000;
 
-    this.targetExpectedReturn = 0.1;
+    this.targetExpectedReturn = 0.15;
     this.targetRisk = 0.5;
     this.targetLiquidity = 1;
+
   }
 
   ngOnInit() {
@@ -68,12 +76,10 @@ export class SimulatorComponent implements OnInit {
         if (res) {
 
           res.forEach(s => {
-            const risk = Math.random();
-            const roi = (this.randn_bm() ) / 5 + 0.1 ;
-            const liquidity = Math.random() + Math.random();
-            s.risk = risk;
-            s.return = roi;
-            s.liquidity = liquidity;
+            s.risk = Math.random();
+            s.return = (this.randn_bm() ) / 5 + 0.07 ;
+            s.expectedReturn = Math.random() / 20 + 0.10;
+            s.liquidity = Math.random() + Math.random();
             s.private = false;
             s.exposure = this.assignExposure(300);
             if (s.exposure) {
@@ -90,12 +96,10 @@ export class SimulatorComponent implements OnInit {
 
           res.forEach(s => {
             if (this.assignableValue) {
-              const risk = Math.random();
-              const roi = (this.randn_bm() ) / 5 + 0.1 ;
-              const liquidity = Math.random() + Math.random() ;
-              s.risk = risk;
-              s.return = roi;
-              s.liquidity = liquidity;
+              s.risk =  Math.random();
+              s.return = (this.randn_bm() ) / 5 + 0.1 ;
+              s.liquidity = Math.random() + Math.random() ;
+              s.expectedReturn = Math.random() / 20 + 0.15;
               s.private = true;
               s.exposure = this.assignExposure(300);
               if (s.exposure) {
@@ -133,12 +137,10 @@ export class SimulatorComponent implements OnInit {
       if (res) {
         for (let i = 0; i < 3; i++) {
           const s = res[i];
-          const risk = Math.random();
-          const roi = 0 ;
-          const liquidity = Math.random() + Math.random() ;
-          s.risk = risk;
-          s.return = roi;
-          s.liquidity = liquidity;
+          s.risk = Math.random();
+          s.return = 0 ;
+          s.liquidity = Math.random() + Math.random() ;
+          s.expectedReturn = Math.random() / 20 + 0.10;
           s.private = true;
           s.exposure = 10000000;
           s.newDeal = true;
@@ -162,9 +164,8 @@ export class SimulatorComponent implements OnInit {
     if (this.assignableValue > 3 * exposure) {
       this.assignableValue = this.assignableValue - exposure;
       return exposure;
-    } else {
-      return 0;
     }
+    return 0;
   }
 
   updateRebalancingDeals() {
@@ -173,12 +174,9 @@ export class SimulatorComponent implements OnInit {
       if (res) {
         for (let i = 0; i < 10; i++) {
           const s = res[i];
-          const risk = Math.random();
-          const roi = 0 ;
-          const liquidity = Math.random() + Math.random() ;
-          s.risk = risk;
-          s.return = roi;
-          s.liquidity = liquidity;
+          s.risk = Math.random();
+          s.return = 0;
+          s.liquidity = Math.random() + Math.random() ;
           s.private = false;
           s.exposure = 10000000;
           s.newDeal = true;
@@ -204,7 +202,6 @@ export class SimulatorComponent implements OnInit {
 
   getPortfolioMatrics() {
     // dummy method
-    console.log(this.portfolio);
     let riskAccu = 0, expectedReturnAccu = 0, liquidityAccu = 0, counter = 0 , numPrivate = 0, numPublic = 0, equityValue = 0;
     this.securities.forEach(s => {
       riskAccu += s.risk;
