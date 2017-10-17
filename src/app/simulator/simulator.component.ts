@@ -8,7 +8,6 @@ import { CrawlerService } from './../@core/services/crawler.service';
 import { Security } from './../@core/classes/security';
 import { Portfolio } from './../@core/classes/portfolio';
 import { Simulation } from './../@core/classes/simulation';
-import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-simulator',
@@ -70,12 +69,12 @@ export class SimulatorComponent implements OnInit {
 
   initializeSimulation() {
 
-    this.securities = [];
 
     this.simulationService.createSimulation(this.simulation).then(simulation => {
       if (simulation) {
         this.simulation = simulation;
         this.portfolio = new Portfolio(this.simulation);
+        this.portfolio.securities = [];
         this.configStatus = true;
 
         if (this.simulation.simulationType === 'manual') {
@@ -86,7 +85,7 @@ export class SimulatorComponent implements OnInit {
 
               res.forEach(s => {
                 this.assignFinancialProperties(s, false, 'hold');
-                if (s.exposure) {this.securities.push(s); }
+                if (s.exposure) {this.portfolio.securities.push(s); }
               });
 
             }
@@ -99,7 +98,7 @@ export class SimulatorComponent implements OnInit {
                 if (this.assignableValue) {
                   this.assignFinancialProperties(s, true, 'hold');
                   if (s.exposure) {
-                    this.securities.push(s);
+                    this.portfolio.securities.push(s);
                   } else {
                     this.cashValue = this.assignableValue;
                     this.assignableValue = 0;
@@ -112,7 +111,6 @@ export class SimulatorComponent implements OnInit {
 
             }
 
-            this.portfolio.securities = this.securities;
             this.getPortfolioMatrics();
             this.savePortfolio();
           });
@@ -126,7 +124,7 @@ export class SimulatorComponent implements OnInit {
   /////////////////////////////////////////////
   // STEP 1
   updateReturns() {
-    this.securities.forEach(s => {
+    this.portfolio.securities.forEach(s => {
       const r = (this.randn_bm() ) / 40 ;
       r > 0 ? s.gain = true : s.gain = false;
       s.dayChange = r;
@@ -150,7 +148,7 @@ export class SimulatorComponent implements OnInit {
           s.newDeal = true;
           this.portfolio.cash -= s.exposure;
 
-          this.securities.unshift(s);
+          this.portfolio.securities.unshift(s);
         }
         const randIndex =  Math.floor((Math.random() * 150) + 100);
         const soldAsset = this.portfolio.securities[randIndex];
@@ -182,7 +180,7 @@ export class SimulatorComponent implements OnInit {
   getPortfolioMatrics() {
     // dummy method
     let riskAccu = 0, expectedReturnAccu = 0, liquidityAccu = 0, counter = 0 , numPrivate = 0, numPublic = 0, equityValue = 0;
-    this.securities.forEach(s => {
+    this.portfolio.securities.forEach(s => {
       riskAccu += s.risk;
       expectedReturnAccu += s.return;
       liquidityAccu += s.liquidity;
@@ -215,6 +213,10 @@ export class SimulatorComponent implements OnInit {
     // dummy method
     // calculate discrepancy to target
   }
+
+  /////////////////////////////////////////////
+  //  session control methods
+
 
   savePortfolio() {
     this.portfolioService.createPortfolio(this.portfolio).then(res => {
@@ -261,9 +263,6 @@ export class SimulatorComponent implements OnInit {
   }
 
 
-
-
-  /////////////////////////////////////////////
   /////////////////////////////////////////////
   // helper methods
   randn_bm() {

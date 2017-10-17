@@ -41,7 +41,9 @@
         <option value="2Q">2 Quarter</option>
         <option value="1Y">1 Year</option>
       </select>
-      &nbsp;&nbsp;
+      &nbsp;&nbsp;Start Date&nbsp;
+      <input type="date"  [(ngModel)]="simulation.startDate"  name="start-date"/>
+      
       <div class="f1"></div>
       <button (click)="initializeSimulation()">Confirm</button>
       &nbsp;&nbsp;
@@ -89,7 +91,7 @@
             <th>Exposure(M)</th>
             <th *ngIf="dayChange">Day Chg.</th>
           </tr>
-          <tr *ngFor="let s of securities"  [ngClass]="{'new-deal' : s.newDeal, 'sold-deal': s.soldDeal}">
+          <tr *ngFor="let s of portfolio.securities"  [ngClass]="{'new-deal' : s.newDeal, 'sold-deal': s.soldDeal}">
             <td class="ac">{{s.private ? "private":"public"}}</td>
             <td>{{s.Symbol}} {{s.Issuer}}</td>
             <td>{{s.status}}</td>
