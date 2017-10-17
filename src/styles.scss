@@ -52,7 +52,7 @@ a:active {color:inherit;text-decoration:none;}
 
 .app-nav-bar{
      background-color:#999;
-     border-top:#aaa solid 1px;
+     //border-top:#aaa solid 1px;
      border-bottom:#777 solid 1px;
     
     .app-nav{
@@ -81,6 +81,7 @@ a:active {color:inherit;text-decoration:none;}
 .app-panel{
     background-color:#eee;
     max-width:20rem;
+    border-right:#ccc solid 1px;
 
     .step{
         padding:1rem;
@@ -121,7 +122,8 @@ table{
 .status-panel{
     background:linear-gradient(rgba(192, 173, 113, 0.7),rgba(192, 168, 108, 0.7));
     background:white;
-    border:#ccc solid 1px;
+    border-top:#ccc solid 1px;
+    border-bottom:#ccc solid 1px;
 
     .status-msg{
         padding:0 1rem;

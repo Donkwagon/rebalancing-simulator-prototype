@@ -23,12 +23,8 @@ server.listen(process.env.PORT || 8080, function (err) {
 
 //////////////////////////////////////////
 //Connect to mongoose db
-// Use native promises
-// mongoose.Promise = require('bluebird');
 var MongoDbConStr = "mongodb://Donkw:Idhap007@ds147070.mlab.com:47070/heroku_0svwdhtc";
-// global.db = (global.db ? global.db : mongoose.createConnection(MongoDbConStr));
 global.db = mongoose.createConnection(MongoDbConStr);
-
 //////////////////////////////////////////
 
 const apis = require('./server/routes/apis');

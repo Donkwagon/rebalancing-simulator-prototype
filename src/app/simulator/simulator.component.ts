@@ -31,11 +31,6 @@ export class SimulatorComponent implements OnInit {
   messageQueue: any[];
   dayChange: boolean;
 
-  targetExpectedReturn: number;
-  targetRisk: number;
-  targetLiquidity: number;
-
-
   constructor(
     private securityService: SecurityService,
     private crawlerService: CrawlerService,
@@ -48,31 +43,38 @@ export class SimulatorComponent implements OnInit {
     // manual steps init
     this.dayChange = false;
 
-    this.simulation = new Simulation();
     this.configStatus = false;
 
     this.totalValue = 100000000000;
     this.assignableValue = 100000000000;
 
-    this.targetExpectedReturn = 0.15;
-    this.targetRisk = 0.5;
-    this.targetLiquidity = 1;
-
   }
 
   ngOnInit() {
+    // set simulation target values
+    const targetExpectedReturn = 0.15;
+    const targetRisk = 0.5;
+    const targetLiquidity = 1;
 
+    this.simulation = new Simulation(targetExpectedReturn, targetRisk, targetLiquidity);
+
+  }
+
+  automateSimulation(numPeriod) {
+    let i = 0;
+    while (i < numPeriod) {
+      this.updateReturns();
+      this.updatePrivateDeals();
+      this.rebalance();
+      i++;
+    }
   }
 
   initializeSimulation() {
 
     this.securities = [];
-    this.portfolio = new Portfolio(this.simulation._id);
-    this.simulationService.createSimulation(this.simulation).then(res => {
-      if (res) {
-        console.log(res);
-      }
-    });
+
+    this.saveSimulation();
 
     this.configStatus = true;
 
@@ -132,15 +134,8 @@ export class SimulatorComponent implements OnInit {
 
   }
 
-
-  crawl() {
-    this.crawlerService.RunCrawler().then(res => {
-      if (res) {
-        console.log(res);
-      }
-    });
-  }
-
+  /////////////////////////////////////////////
+  // STEP 1
   updateReturns() {
     this.securities.forEach(s => {
       const r = (this.randn_bm() ) / 40 ;
@@ -152,6 +147,8 @@ export class SimulatorComponent implements OnInit {
     this.messageQueue.push('Market return updated');
   }
 
+  /////////////////////////////////////////////
+  // STEP 2
   updatePrivateDeals() {
 
     this.securityService.getSecurities().then(res => {
@@ -172,23 +169,14 @@ export class SimulatorComponent implements OnInit {
 
         const msg = 'Privated deals imported';
         this.messageQueue.push(msg);
-        console.log(123);
         this.getPortfolioMatrics();
       }
     });
 
   }
 
-  assignExposure(num) {
-    const mean = this.totalValue / 500;
-    const exposure = (mean * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
-    if (this.assignableValue > 3 * exposure) {
-      this.assignableValue = this.assignableValue - exposure;
-      return exposure;
-    }
-    return 0;
-  }
-
+  /////////////////////////////////////////////
+  // STEP 3
   updateRebalancingDeals() {
 
     this.securityService.getSecurities().then(res => {
@@ -212,16 +200,8 @@ export class SimulatorComponent implements OnInit {
     });
   }
 
-  rebalance() {
-    // dummy method
-    // calculate discrepancy to target
-  }
-
-  // dummy rebalance methods
-  rebalanceMethod() {
-
-  }
-
+  /////////////////////////////////////////////
+  // methods that run after each step
   getPortfolioMatrics() {
     // dummy method
     let riskAccu = 0, expectedReturnAccu = 0, liquidityAccu = 0, counter = 0 , numPrivate = 0, numPublic = 0, equityValue = 0;
@@ -255,6 +235,23 @@ export class SimulatorComponent implements OnInit {
     this.messageQueue.push('-- Liquidity: ' + Math.round(this.portfolio.liquidity * 100) / 100);
   }
 
+  /////////////////////////////////////////////
+  // intermediate calculations
+  assignExposure(num) {
+    const mean = this.totalValue / 500;
+    const exposure = (mean * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
+    if (this.assignableValue > 3 * exposure) {
+      this.assignableValue = this.assignableValue - exposure;
+      return exposure;
+    }
+    return 0;
+  }
+
+  rebalance() {
+    // dummy method
+    // calculate discrepancy to target
+  }
+
   savePortfolio() {
     this.portfolioService.createPortfolio(this.portfolio).then(res => {
       if (res) {
@@ -263,7 +260,14 @@ export class SimulatorComponent implements OnInit {
     });
   }
 
-  saveSimulation() {}
+  saveSimulation() {
+    this.portfolio = new Portfolio(this.simulation._id);
+    this.simulationService.createSimulation(this.simulation).then(res => {
+      if (res) {
+        console.log(res);
+      }
+    });
+  }
 
   saveSimulationSnapshot() {}
 
@@ -273,6 +277,14 @@ export class SimulatorComponent implements OnInit {
     while (u === 0) { u = Math.random(); }
     while (v === 0) { v = Math.random(); }
     return Math.sqrt( -1.0 * Math.log( u ) ) * Math.cos( 1.0 * Math.PI * v );
+  }
+
+  crawl() {
+    this.crawlerService.RunCrawler().then(res => {
+      if (res) {
+        console.log(res);
+      }
+    });
   }
 
 }
