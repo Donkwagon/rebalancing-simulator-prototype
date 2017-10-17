@@ -42,7 +42,6 @@ export class SimulatorComponent implements OnInit {
 
     // manual steps init
     this.dayChange = false;
-
     this.configStatus = false;
 
     this.totalValue = 100000000000;
@@ -57,7 +56,6 @@ export class SimulatorComponent implements OnInit {
     const targetLiquidity = 1;
 
     this.simulation = new Simulation(targetExpectedReturn, targetRisk, targetLiquidity);
-
   }
 
   automateSimulation(numPeriod) {
@@ -74,63 +72,54 @@ export class SimulatorComponent implements OnInit {
 
     this.securities = [];
 
-    this.saveSimulation();
+    this.simulationService.createSimulation(this.simulation).then(simulation => {
+      if (simulation) {
+        this.simulation = simulation;
+        this.portfolio = new Portfolio(this.simulation);
+        this.configStatus = true;
 
-    this.configStatus = true;
+        if (this.simulation.simulationType === 'manual') {
 
-    if (this.simulation.simulationType === 'manual') {
+          this.securityService.getSecurities().then(res => {
 
-      this.securityService.getSecurities().then(res => {
+            if (res) {
 
-        if (res) {
+              res.forEach(s => {
+                this.assignFinancialProperties(s, false, 'hold');
+                if (s.exposure) {this.securities.push(s); }
+              });
 
-          res.forEach(s => {
-            s.risk = Math.random();
-            s.return = (this.randn_bm() ) / 5 + 0.07 ;
-            s.expectedReturn = Math.random() / 20 + 0.10;
-            s.liquidity = Math.random() + Math.random();
-            s.private = false;
-            s.exposure = this.assignExposure(300);
-            if (s.exposure) {
-              this.securities.push(s);
-            }
-
-          });
-
-        }
-      });
-
-      this.securityService.getSecurities().then(res => {
-        if (res) {
-
-          res.forEach(s => {
-            if (this.assignableValue) {
-              s.risk =  Math.random();
-              s.return = (this.randn_bm() ) / 5 + 0.1 ;
-              s.liquidity = Math.random() + Math.random() ;
-              s.expectedReturn = Math.random() / 20 + 0.15;
-              s.private = true;
-              s.exposure = this.assignExposure(300);
-              if (s.exposure) {
-                this.securities.push(s);
-              } else {
-                this.cashValue = this.assignableValue;
-                this.assignableValue = 0;
-              }
             }
           });
 
-          const msg = 'Portfolio initialized';
-          this.messageQueue.push(msg);
+          this.securityService.getSecurities().then(res => {
+            if (res) {
 
+              res.forEach(s => {
+                if (this.assignableValue) {
+                  this.assignFinancialProperties(s, true, 'hold');
+                  if (s.exposure) {
+                    this.securities.push(s);
+                  } else {
+                    this.cashValue = this.assignableValue;
+                    this.assignableValue = 0;
+                  }
+                }
+              });
+
+              const msg = 'Portfolio initialized';
+              this.messageQueue.push(msg);
+
+            }
+
+            this.portfolio.securities = this.securities;
+            this.getPortfolioMatrics();
+            this.savePortfolio();
+          });
         }
+      }
+    });
 
-        this.portfolio.securities = this.securities;
-        this.getPortfolioMatrics();
-        this.savePortfolio();
-      });
-
-    }
 
   }
 
@@ -153,18 +142,24 @@ export class SimulatorComponent implements OnInit {
 
     this.securityService.getSecurities().then(res => {
       if (res) {
-        for (let i = 0; i < 3; i++) {
+        const len = Math.floor((Math.random() * 3) + 1);
+        for (let i = 0; i < len; i++) {
           const s = res[i];
-          s.risk = Math.random();
-          s.return = 0 ;
-          s.liquidity = Math.random() + Math.random() ;
-          s.expectedReturn = Math.random() / 20 + 0.10;
-          s.private = true;
-          s.exposure = 10000000;
+          this.assignFinancialProperties(s, true, 'bought');
+          s.exposure = (this.totalValue / 500 * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
           s.newDeal = true;
+          this.portfolio.cash -= s.exposure;
 
           this.securities.unshift(s);
-
+        }
+        const randIndex =  Math.floor((Math.random() * 150) + 100);
+        const soldAsset = this.portfolio.securities[randIndex];
+        if (soldAsset) {
+          soldAsset.soldDeal = true;
+          soldAsset.status = 'sold';
+          soldAsset.dayChange = null;
+          this.portfolio.securities.splice(randIndex, 1);
+          this.portfolio.securities.unshift(soldAsset);
         }
 
         const msg = 'Privated deals imported';
@@ -178,26 +173,8 @@ export class SimulatorComponent implements OnInit {
   /////////////////////////////////////////////
   // STEP 3
   updateRebalancingDeals() {
-
-    this.securityService.getSecurities().then(res => {
-      if (res) {
-        for (let i = 0; i < 10; i++) {
-          const s = res[i];
-          s.risk = Math.random();
-          s.return = 0;
-          s.liquidity = Math.random() + Math.random() ;
-          s.private = false;
-          s.exposure = 10000000;
-          s.newDeal = true;
-
-          this.securities.unshift(s);
-
-        }
-
-        const msg = 'Privated deals imported';
-        this.messageQueue.push(msg);
-      }
-    });
+    // discrepancy calculated in previous step
+    console.log(this.portfolio);
   }
 
   /////////////////////////////////////////////
@@ -223,7 +200,6 @@ export class SimulatorComponent implements OnInit {
     this.portfolio.totalValue = equityValue + this.cashValue;
     this.portfolio.cash = this.cashValue;
 
-    console.log(this.portfolio);
     this.messageQueue.push('Portfolio matrics calculated');
     this.messageQueue.push('Private Assets: ' + this.portfolio.numPrivate);
     this.messageQueue.push('Public Assets: ' + this.portfolio.numPublic);
@@ -235,8 +211,31 @@ export class SimulatorComponent implements OnInit {
     this.messageQueue.push('-- Liquidity: ' + Math.round(this.portfolio.liquidity * 100) / 100);
   }
 
+  rebalance() {
+    // dummy method
+    // calculate discrepancy to target
+  }
+
+  savePortfolio() {
+    this.portfolioService.createPortfolio(this.portfolio).then(res => {
+      if (res) {
+      }
+    });
+  }
+
+  saveSimulationSnapshot() {}
+
+  saveSimulation() {
+    this.simulationService.createSimulation(this.simulation).then(res => {
+      if (res) {
+        this.simulation = res;
+      }
+    });
+  }
+
+
   /////////////////////////////////////////////
-  // intermediate calculations
+  // dummy number generators
   assignExposure(num) {
     const mean = this.totalValue / 500;
     const exposure = (mean * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
@@ -247,30 +246,25 @@ export class SimulatorComponent implements OnInit {
     return 0;
   }
 
-  rebalance() {
-    // dummy method
-    // calculate discrepancy to target
+  assignFinancialProperties(s, isPrivate, status) {
+    s.risk = Math.random();
+    s.status = status;
+    s.return = (this.randn_bm() ) / 5 + 0.07 ;
+    s.expectedReturn = Math.random() / 20 + 0.2;
+    if (isPrivate) {
+      s.liquidity = (Math.random() + Math.random()) / 50;
+    } else {
+      s.liquidity = (Math.random() + Math.random()) * 1.6;
+    }
+    s.private = isPrivate;
+    s.exposure = this.assignExposure(300);
   }
 
-  savePortfolio() {
-    this.portfolioService.createPortfolio(this.portfolio).then(res => {
-      if (res) {
-        console.log(res);
-      }
-    });
-  }
 
-  saveSimulation() {
-    this.portfolio = new Portfolio(this.simulation._id);
-    this.simulationService.createSimulation(this.simulation).then(res => {
-      if (res) {
-        console.log(res);
-      }
-    });
-  }
 
-  saveSimulationSnapshot() {}
 
+  /////////////////////////////////////////////
+  /////////////////////////////////////////////
   // helper methods
   randn_bm() {
     let u = 0, v = 0;
@@ -282,7 +276,6 @@ export class SimulatorComponent implements OnInit {
   crawl() {
     this.crawlerService.RunCrawler().then(res => {
       if (res) {
-        console.log(res);
       }
     });
   }

@@ -5,8 +5,11 @@ export class Simulation {
     simulationName: string;
     rebalancingMode: string;
     simulationType: string;
-    rebalanceMethod: string;
+    rebalancingMethod: string;
     period: string;
+
+    startDate: any;
+    snapshotDate: any;
 
     targetExpectedReturn: number;
     targetRisk: number;
@@ -17,7 +20,7 @@ export class Simulation {
         this.rebalancingMode = 'single';
         this.simulationType = 'manual';
         this.simulationName = '';
-        this.rebalanceMethod = '';
+        this.rebalancingMethod = '';
         this.period = '1D';
 
         this.targetExpectedReturn = targetExpectedReturn;

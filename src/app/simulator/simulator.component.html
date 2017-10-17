@@ -10,13 +10,13 @@
         <option value="multiple">Methods Comparison</option>
       </select>
       &nbsp;&nbsp;
-      &nbsp;&nbsp;Date Sensitive&nbsp;
+      <!-- &nbsp;&nbsp;Date Sensitive&nbsp;
       <select name="rebalancingMode" [(ngModel)]="simulation.rebalancingMode">
         <option value="single">Specific Start Date</option>
         <option value="multiple">Date Independent</option>
         <option value="multiple">Data Contains Date Info</option>
       </select>
-      &nbsp;&nbsp;
+      &nbsp;&nbsp; -->
     </form>
   </div>
   <div class="app-mode r">
@@ -48,7 +48,11 @@
       <!-- <button (click)="crawl()">Crawl</button> -->
     </form>
   </div>
-
+  <div class="spray-caption c" *ngIf="!configStatus">
+    <br>
+    <br>
+    <h1>configure simulation settings</h1>
+  </div>
   <div class="app-main f1 r" *ngIf="configStatus">
     <div class="app-panel c f1" *ngIf="simulation.simulationType == 'manual'">
       <div class="step r">
@@ -67,7 +71,7 @@
       <div class="step r">
         Rebalancing Deals
         <div class="f1"></div>
-        <button>Import</button>
+        <button (click)="updateRebalancingDeals()">Import</button>
       </div>
     </div>
     <div class="app-body c f2">
@@ -77,6 +81,7 @@
           <tr>
             <th>Asset Type</th>
             <th>Asset Name</th>
+            <th>Asset Status</th>
             <th>Beta</th>
             <th>ROI</th>
             <th>Expct. ROI</th>
@@ -84,9 +89,10 @@
             <th>Exposure(M)</th>
             <th *ngIf="dayChange">Day Chg.</th>
           </tr>
-          <tr *ngFor="let s of securities"  [ngClass]="{'new-deal' : s.newDeal}">
+          <tr *ngFor="let s of securities"  [ngClass]="{'new-deal' : s.newDeal, 'sold-deal': s.soldDeal}">
             <td class="ac">{{s.private ? "private":"public"}}</td>
             <td>{{s.Symbol}} {{s.Issuer}}</td>
+            <td>{{s.status}}</td>
             <td class="ar">{{s.risk | number : '1.2-2' }}</td>
             <td class="ar"[ngClass]="{'gain' : s.return > 0, 'loss':s.return < 0}">{{s.return*100 | number : '1.2-2' }}%</td>
             <td class="ar"[ngClass]="{'gain' : s.expectedReturn > 0, 'loss':s.expectedReturn < 0}">{{s.expectedReturn*100 | number : '1.2-2' }}%</td>

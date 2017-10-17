@@ -15,6 +15,8 @@ export class Security {
     newDeal: boolean;
     exposure: number;
 
+    status : string;
+
     symbol: String;
     securityName: String;
 
