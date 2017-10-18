@@ -24,6 +24,8 @@ export class SimulatorComponent implements OnInit {
   simulation: Simulation;
   configStatus: boolean;
 
+  assetPool: Security[];
+
   portfolio: Portfolio;
 
   securities: Security[];
@@ -53,7 +55,7 @@ export class SimulatorComponent implements OnInit {
     const targetExpectedReturn = 0.15;
     const targetRisk = 0.5;
     const targetLiquidity = 1;
-
+    this.initializeDummyPool();
     this.simulation = new Simulation(targetExpectedReturn, targetRisk, targetLiquidity);
   }
 
@@ -68,7 +70,6 @@ export class SimulatorComponent implements OnInit {
   }
 
   initializeSimulation() {
-
 
     this.simulationService.createSimulation(this.simulation).then(simulation => {
       if (simulation) {
@@ -278,5 +279,37 @@ export class SimulatorComponent implements OnInit {
       }
     });
   }
+
+  /////////////////////////////////////////////
+  // dummy asset pool to get rid of callback chain
+  initializeDummyPool() {
+
+    this.securityService.getSecurities().then(res => {
+      if (res) {
+        const assets = res;
+        assets.forEach(a => {
+          this.assetPool.push(a);
+        });
+      }
+    });
+    this.securityService.getSecurities().then(res => {
+      if (res) {
+        const assets = res;
+        assets.forEach(a => {
+          this.assetPool.push(a);
+        });
+      }
+    });
+    this.securityService.getSecurities().then(res => {
+      if (res) {
+        const assets = res;
+        assets.forEach(a => {
+          this.assetPool.push(a);
+        });
+      }
+    });
+
+  }
+
 
 }

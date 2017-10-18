@@ -100,7 +100,7 @@
             <td class="ar"[ngClass]="{'gain' : s.expectedReturn > 0, 'loss':s.expectedReturn < 0}">{{s.expectedReturn*100 | number : '1.2-2' }}%</td>
             <td class="ar">{{s.liquidity | number : '1.2-2' }}</td>
             <td class="ar">{{s.exposure/1000000| number:'.1'}}</td>
-            <td class="ar"  [ngClass]="{'gain' : s.gain, 'loss':!s.gain}" *ngIf="dayChange">{{s.dayChange*100 | number : '1.2-2' }}%</td>
+            <td class="ar" class="new-deal ar"  [ngClass]="{'gain' : s.gain, 'loss':!s.gain}" *ngIf="dayChange">{{s.dayChange*100 | number : '1.2-2' }}%</td>
           </tr>
         </table>
 
