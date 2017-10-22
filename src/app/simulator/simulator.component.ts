@@ -32,6 +32,8 @@ export class SimulatorComponent implements OnInit {
   messageQueue: any[];
   dayChange: boolean;
 
+  autoLoopingIndex: number;
+
   constructor(
     private securityService: SecurityService,
     private crawlerService: CrawlerService,
@@ -48,6 +50,8 @@ export class SimulatorComponent implements OnInit {
     this.totalValue = 100000000000;
     this.assignableValue = 100000000000;
 
+    this.autoLoopingIndex = 0;
+
   }
 
   ngOnInit() {
@@ -55,19 +59,9 @@ export class SimulatorComponent implements OnInit {
     const targetExpectedReturn = 0.15;
     const targetRisk = 0.5;
     const targetLiquidity = 1;
-    this.initializeDummyPool();
     this.simulation = new Simulation(targetExpectedReturn, targetRisk, targetLiquidity);
   }
 
-  automateSimulation(numPeriod) {
-    let i = 0;
-    while (i < numPeriod) {
-      this.updateReturns();
-      this.updatePrivateDeals();
-      this.rebalance();
-      i++;
-    }
-  }
 
   initializeSimulation() {
 
@@ -78,61 +72,80 @@ export class SimulatorComponent implements OnInit {
         this.portfolio.securities = [];
         this.configStatus = true;
 
-        if (this.simulation.simulationType === 'manual') {
 
-          this.securityService.getSecurities().then(res => {
+        this.securityService.getSecurities().then(res => {
 
-            if (res) {
+          if (res) {
 
-              res.forEach(s => {
-                this.assignFinancialProperties(s, false, 'hold');
-                if (s.exposure) {this.portfolio.securities.push(s); }
-              });
+            res.forEach(s => {
+              this.assignFinancialProperties(s, false, 'hold');
+              if (s.exposure) {this.portfolio.securities.push(s); }
+            });
 
-            }
-          });
+          }
+        });
 
-          this.securityService.getSecurities().then(res => {
-            if (res) {
+        this.securityService.getSecurities().then(res => {
+          if (res) {
 
-              res.forEach(s => {
-                if (this.assignableValue) {
-                  this.assignFinancialProperties(s, true, 'hold');
-                  if (s.exposure) {
-                    this.portfolio.securities.push(s);
-                  } else {
-                    this.cashValue = this.assignableValue;
-                    this.assignableValue = 0;
-                  }
+            res.forEach(s => {
+              if (this.assignableValue) {
+                this.assignFinancialProperties(s, true, 'hold');
+                if (s.exposure) {
+                  this.portfolio.securities.push(s);
+                } else {
+                  this.cashValue = this.assignableValue;
+                  this.assignableValue = 0;
                 }
-              });
+              }
+            });
 
-              const msg = 'Portfolio initialized';
-              this.messageQueue.push(msg);
+            const msg = 'Portfolio initialized';
+            this.messageQueue.push(msg);
 
-            }
+          }
 
-            this.getPortfolioMatrics();
-            this.savePortfolio();
-          });
+          this.getPortfolioMatrics();
+          this.savePortfolio();
+        });
+
+        if (this.simulation.simulationType === 'batch') {
+          this.runAutomatedSimulation();
         }
       }
     });
 
+  }
 
+  runAutomatedSimulation() {
+    if (this.autoLoopingIndex < 30) {
+      this.autoLoopingIndex++;
+      this.updateReturns();
+    }
   }
 
   /////////////////////////////////////////////
   // STEP 1
   updateReturns() {
+
     this.portfolio.securities.forEach(s => {
       const r = (this.randn_bm() ) / 40 ;
       r > 0 ? s.gain = true : s.gain = false;
       s.dayChange = r;
       s.expectedReturn += r / 100;
+      s.exposure = s.exposure * (1 + r);
+
+      s.newDeal = false;
     });
+
     this.dayChange = true;
     this.messageQueue.push('Market return updated');
+
+    if (this.simulation.simulationType === 'batch') {
+      setTimeout(() => {
+        this.updatePrivateDeals();
+      }, 50);
+    }
   }
 
   /////////////////////////////////////////////
@@ -140,8 +153,10 @@ export class SimulatorComponent implements OnInit {
   updatePrivateDeals() {
 
     this.securityService.getSecurities().then(res => {
+
       if (res) {
-        const len = Math.floor((Math.random() * 3) + 1);
+        const len = Math.floor((Math.random() * 2) + 1);
+
         for (let i = 0; i < len; i++) {
           const s = res[i];
           this.assignFinancialProperties(s, true, 'bought');
@@ -151,19 +166,36 @@ export class SimulatorComponent implements OnInit {
 
           this.portfolio.securities.unshift(s);
         }
-        const randIndex =  Math.floor((Math.random() * 150) + 100);
-        const soldAsset = this.portfolio.securities[randIndex];
+
+        let randIndex =  Math.floor((Math.random() * 150) + 100);
+        let soldAsset = this.portfolio.securities[randIndex];
+
         if (soldAsset) {
           soldAsset.soldDeal = true;
           soldAsset.status = 'sold';
           soldAsset.dayChange = null;
           this.portfolio.securities.splice(randIndex, 1);
-          this.portfolio.securities.unshift(soldAsset);
+          this.portfolio.diffPrivateRemoved.push(soldAsset);
+        }
+        randIndex =  Math.floor((Math.random() * 150) + 100);
+        soldAsset = this.portfolio.securities[randIndex];
+
+        if (soldAsset) {
+          soldAsset.soldDeal = true;
+          soldAsset.status = 'sold';
+          soldAsset.dayChange = null;
+          this.portfolio.securities.splice(randIndex, 1);
+          this.portfolio.diffPrivateRemoved.push(soldAsset);
         }
 
         const msg = 'Privated deals imported';
         this.messageQueue.push(msg);
         this.getPortfolioMatrics();
+
+        if (this.simulation.simulationType === 'batch') {
+          this.updateRebalancingDeals();
+        }
+
       }
     });
 
@@ -173,7 +205,15 @@ export class SimulatorComponent implements OnInit {
   // STEP 3
   updateRebalancingDeals() {
     // discrepancy calculated in previous step
-    console.log(this.portfolio);
+
+    // calculate discrepancies
+    const DiscrepancyExpectedReturn = this.portfolio.targetExpectedReturn - this.portfolio.expectedReturn;
+    const DiscrepancyLiquidity = this.portfolio.targetLiquidity - this.portfolio.liquidity;
+    const DiscrepancyRisk = this.portfolio.targetRisk - this.portfolio.risk;
+
+    this.portfolioService.createPortfolio(this.portfolio).then(res => {
+      this.runAutomatedSimulation();
+    });
   }
 
   /////////////////////////////////////////////
@@ -181,13 +221,17 @@ export class SimulatorComponent implements OnInit {
   getPortfolioMatrics() {
     // dummy method
     let riskAccu = 0, expectedReturnAccu = 0, liquidityAccu = 0, counter = 0 , numPrivate = 0, numPublic = 0, equityValue = 0;
+
     this.portfolio.securities.forEach(s => {
-      riskAccu += s.risk;
-      expectedReturnAccu += s.return;
-      liquidityAccu += s.liquidity;
+
+      riskAccu            += s.risk;
+      expectedReturnAccu  += s.return;
+      liquidityAccu       += s.liquidity;
+      equityValue         += s.exposure;
+
       counter++;
       s.private ? numPrivate++ : numPublic ++;
-      equityValue += s.exposure;
+
     });
 
     this.portfolio.risk = riskAccu / counter;
@@ -200,30 +244,22 @@ export class SimulatorComponent implements OnInit {
     this.portfolio.cash = this.cashValue;
 
     this.messageQueue.push('Portfolio matrics calculated');
-    this.messageQueue.push('Private Assets: ' + this.portfolio.numPrivate);
-    this.messageQueue.push('Public Assets: ' + this.portfolio.numPublic);
-    this.messageQueue.push('Cash: ' + Math.round(this.portfolio.cash / 1000000000 * 1000) / 1000 + 'B');
-    this.messageQueue.push('Equity: ' + Math.round(this.portfolio.equityValue / 1000000000 * 1000) / 1000 + 'B');
-    this.messageQueue.push('Total Value: ' + Math.round(this.portfolio.totalValue / 1000000000 * 1000) / 1000 + 'B');
-    this.messageQueue.push('-- Risk: ' + Math.round(this.portfolio.risk * 100) / 100);
+    this.messageQueue.push('Private Assets:     ' + this.portfolio.numPrivate);
+    this.messageQueue.push('Public Assets:      ' + this.portfolio.numPublic);
+    this.messageQueue.push('Cash:               ' + Math.round(this.portfolio.cash / 1000000000 * 1000) / 1000 + 'B');
+    this.messageQueue.push('Equity:             ' + Math.round(this.portfolio.equityValue / 1000000000 * 1000) / 1000 + 'B');
+    this.messageQueue.push('Total Value:        ' + Math.round(this.portfolio.totalValue / 1000000000 * 1000) / 1000 + 'B');
+    this.messageQueue.push('-- Risk:            ' + Math.round(this.portfolio.risk * 100) / 100);
     this.messageQueue.push('-- Expected Return: ' + Math.round(this.portfolio.expectedReturn * 100) / 100);
-    this.messageQueue.push('-- Liquidity: ' + Math.round(this.portfolio.liquidity * 100) / 100);
-  }
+    this.messageQueue.push('-- Liquidity:       ' + Math.round(this.portfolio.liquidity * 100) / 100);
 
-  rebalance() {
-    // dummy method
-    // calculate discrepancy to target
   }
 
   /////////////////////////////////////////////
   //  session control methods
 
-
   savePortfolio() {
-    this.portfolioService.createPortfolio(this.portfolio).then(res => {
-      if (res) {
-      }
-    });
+    this.portfolioService.createPortfolio(this.portfolio).then(res => {});
   }
 
   saveSimulationSnapshot() {}
@@ -235,7 +271,6 @@ export class SimulatorComponent implements OnInit {
       }
     });
   }
-
 
   /////////////////////////////////////////////
   // dummy number generators
@@ -252,7 +287,7 @@ export class SimulatorComponent implements OnInit {
   assignFinancialProperties(s, isPrivate, status) {
     s.risk = Math.random();
     s.status = status;
-    s.return = (this.randn_bm() ) / 5 + 0.07 ;
+    s.return = (this.randn_bm() ) / 5 + 0.03 ;
     s.expectedReturn = Math.random() / 20 + 0.2;
     if (isPrivate) {
       s.liquidity = (Math.random() + Math.random()) / 50;
@@ -262,7 +297,6 @@ export class SimulatorComponent implements OnInit {
     s.private = isPrivate;
     s.exposure = this.assignExposure(300);
   }
-
 
   /////////////////////////////////////////////
   // helper methods
@@ -279,37 +313,5 @@ export class SimulatorComponent implements OnInit {
       }
     });
   }
-
-  /////////////////////////////////////////////
-  // dummy asset pool to get rid of callback chain
-  initializeDummyPool() {
-
-    this.securityService.getSecurities().then(res => {
-      if (res) {
-        const assets = res;
-        assets.forEach(a => {
-          this.assetPool.push(a);
-        });
-      }
-    });
-    this.securityService.getSecurities().then(res => {
-      if (res) {
-        const assets = res;
-        assets.forEach(a => {
-          this.assetPool.push(a);
-        });
-      }
-    });
-    this.securityService.getSecurities().then(res => {
-      if (res) {
-        const assets = res;
-        assets.forEach(a => {
-          this.assetPool.push(a);
-        });
-      }
-    });
-
-  }
-
 
 }

@@ -16,8 +16,8 @@ export class PortfolioService {
                  .catch(this.handleError);
     }
 
-    getPortfoliosByExchange(exchange: string): Promise<Portfolio[] | void> {
-      return this.http.get(this.PortfoliosUrl + '/exchange/' + exchange)
+    getPortfoliosBySimulation(simulationId: string): Promise<Portfolio[] | void> {
+      return this.http.get(this.PortfoliosUrl + '/simulation/' + simulationId)
                  .toPromise()
                  .then(response => response.json() as Portfolio[])
                  .catch(this.handleError);

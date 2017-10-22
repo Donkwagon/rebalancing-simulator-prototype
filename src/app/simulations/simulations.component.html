@@ -1,20 +1,21 @@
 
 <table>
-    <tr>
-      <th>Simulation Name</th>
-      <th>Rebalancing Method</th>
-      <th>Mode</th>
-      <th>Type</th>
-      <th>Period</th>
-      <th>Date</th>
-    </tr>
-    <tr *ngFor="let simulation of simulations">
-      <td class="ac">{{simulation.simulationName}}</td>
-      <td>{{simulation.rebalancingMethod}}</td>
-      <td>{{simulation.rebalancingMode}}</td>
-      <td>{{simulation.simulationType}}</td>
-      <td>{{simulation.period}}</td>
-      <td>{{simulation.createDate}}</td>
-    </tr>
-  </table>
+  <tr>
+    <th>Simulation Name</th>
+    <th>Rebalancing Method</th>
+    <th>Mode</th>
+    <th>Type</th>
+    <th>Period</th>
+    <th>Date</th>
+  </tr>
+  <tr *ngFor="let simulation of simulations">
+    <td class="ac">{{simulation.simulationName}}</td>
+    <td><a routerLink="/simulations/{{simulation._id}}">{{simulation.rebalancingMethod}}</a></td>
+    <td class="ac">{{simulation.rebalancingMode}}</td>
+    <td class="ac">{{simulation.simulationType}}</td>
+    <td class="ac">{{simulation.period}}</td>
+    <td class="ac">{{simulation.createDate| date}}</td>
+  </tr>
+</table>
+
 <router-outlet></router-outlet>

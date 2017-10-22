@@ -35,5 +35,10 @@ export class Portfolio {
         this.targetExpectedReturn = simulation.targetExpectedReturn;
         this.targetRisk = simulation.targetRisk;
         this.targetLiquidity = simulation.targetLiquidity;
+
+        this.diffPrivateAdded = [];
+        this.diffPrivateRemoved = [];
+        this.diffPublicAdded = [];
+        this.diffPublicRemoved = [];
     }
 }

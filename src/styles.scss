@@ -85,7 +85,7 @@ a:active {color:inherit;text-decoration:none;}
 
 .app-panel{
     background-color:#eee;
-    max-width:20rem;
+    max-width:18rem;
     border-right:#ccc solid 1px;
 
     .step{
@@ -104,6 +104,7 @@ a:active {color:inherit;text-decoration:none;}
 table{
     width:100%;
     border-collapse: collapse;
+    font-size:1em;
 
     th{
         background-color:#eee;
@@ -126,6 +127,10 @@ table{
 
     // .gain{color:green;}
     // .loss{color:red;}
+}
+
+.portfolio-tables{
+    font-size:11px;
 }
 
 .status-panel{

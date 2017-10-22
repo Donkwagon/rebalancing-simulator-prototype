@@ -18,8 +18,8 @@ portfolio.get("", function(req, res) {
   });
 });
 
-portfolio.get("/exchange/:exchange", function(req, res) {
-  db.collection(PORTFOLIO_COLLECTION).find({exchange: req.params.exchange}).limit(100).toArray(function(err, docs) {
+portfolio.get("/simulation/:simulationId", function(req, res) {
+  db.collection(PORTFOLIO_COLLECTION).find({simulationId: req.params.simulationId}).limit(100).toArray(function(err, docs) {
     if (err) {
       handleError(res, err.message, "Failed to get portfolios.");
     } else {
