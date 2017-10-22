@@ -21,6 +21,7 @@ import { SimulatorComponent } from './simulator/simulator.component';
 import { SimulationsComponent } from './simulations/simulations.component';
 import { ReportsComponent } from './reports/reports.component';
 import { SimulationComponent } from './simulations/simulation/simulation.component';
+import { SimulationsOverallComponent } from './simulations/simulations-overall/simulations-overall.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { SimulationComponent } from './simulations/simulation/simulation.compone
     SimulatorComponent,
     SimulationsComponent,
     ReportsComponent,
-    SimulationComponent
+    SimulationComponent,
+    SimulationsOverallComponent
   ],
   imports: [
     AppRoutingModule,

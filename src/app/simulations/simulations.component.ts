@@ -17,7 +17,6 @@ import { Simulation } from './../@core/classes/simulation';
 })
 export class SimulationsComponent implements OnInit {
 
-  simulations: Simulation[];
 
   constructor(
     private securityService: SecurityService,
@@ -25,19 +24,9 @@ export class SimulationsComponent implements OnInit {
     private simulationService: SimulationService,
     private portfolioService: PortfolioService
   ) {
-    this.simulations = [];
   }
 
   ngOnInit() {
-    this.getSimulations();
-  }
-
-  getSimulations() {
-    this.simulationService.getSimulations().then(res => {
-      if (res) {
-        this.simulations = res;
-      }
-    });
   }
 
 }
