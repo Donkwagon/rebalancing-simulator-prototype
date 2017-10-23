@@ -20,10 +20,10 @@ export class SimulatorComponent implements OnInit {
   configStatus: boolean;
 
   simulation: Simulation;
-
   portfolio: Portfolio;
 
   messageQueue: any[];
+
   dayChange: boolean;
 
   autoLoopingIndex: number;
@@ -46,9 +46,7 @@ export class SimulatorComponent implements OnInit {
 
   ngOnInit() {
     // set simulation target values
-    const targetExpectedReturn = 0.15;
-    const targetRisk = 0.5;
-    const targetLiquidity = 1;
+    const targetExpectedReturn = 0.15, targetRisk = 0.5, targetLiquidity = 1;
     this.simulation = new Simulation(targetExpectedReturn, targetRisk, targetLiquidity);
   }
 
@@ -78,26 +76,19 @@ export class SimulatorComponent implements OnInit {
             res.forEach(s => {
               if (this.portfolio.cash) {
                 this.assignFinancialProperties(s, true, 'hold');
-                if (s.exposure) {
-                  this.portfolio.securities.push(s);
-                } else {
-                  this.portfolio.cash = 0;
-                }
+                if (s.exposure) { this.portfolio.securities.push(s); }
               }
             });
-
-            const msg = 'Portfolio initialized';
-            this.messageQueue.push(msg);
-
+            this.messageQueue.push('Portfolio initialized');
           }
 
           this.getPortfolioMatrics();
           this.savePortfolio();
-        });
 
-        if (this.simulation.simulationType === 'batch') {
-          this.runAutomatedSimulation();
-        }
+          if (this.simulation.simulationType === 'batch') {
+            this.runAutomatedSimulation();
+          }
+        });
       }
     });
 
@@ -106,13 +97,17 @@ export class SimulatorComponent implements OnInit {
   runAutomatedSimulation() {
     if (this.autoLoopingIndex < 30) {
       this.autoLoopingIndex++;
-      const d = new Date();
+      // assign date to new portfolio
+      this.portfolio.diffPrivateAdded = [];
+      this.portfolio.diffPrivateRemoved = [];
+      this.portfolio.diffPublicAdded = [];
+      this.portfolio.diffPublicRemoved = [];
       const date = new Date(this.simulation.startDate);
-      const dateOffset = (this.autoLoopingIndex - 1) * (this.getDateInterval(this.simulation.period));
-      d.setMonth(date.getFullYear());
-      d.setMonth(date.getMonth());
-      d.setDate(date.getDate() + (this.autoLoopingIndex - 1));
-      this.portfolio.date = d;
+      const startTimestamp = date.getTime();
+      const intv = this.getDateInterval(this.simulation.period);
+      const timestamp = startTimestamp + (this.autoLoopingIndex - 1) * intv * 24 * 3600 * 1000;
+      this.portfolio.date = new Date(timestamp);
+
       this.updateReturns();
     }
   }
@@ -122,7 +117,8 @@ export class SimulatorComponent implements OnInit {
   updateReturns() {
 
     this.portfolio.securities.forEach(s => {
-      const r = (this.randn_bm() ) / 40 ;
+      const growthFactor = this.getDateInterval(this.simulation.period ) / 365;
+      const r = (Math.random() - 0.5 + growthFactor * 30 ) / 50 ;
       r > 0 ? s.gain = true : s.gain = false;
       s.dayChange = r;
       s.expectedReturn += r / 100;
@@ -146,39 +142,20 @@ export class SimulatorComponent implements OnInit {
     this.securityService.getSecurities().then(res => {
 
       if (res) {
+
+        this.removeEquity(true);
+        this.removeEquity(true);
+
         const len = Math.floor((Math.random() * 2) + 1);
 
         for (let i = 0; i < len; i++) {
           const s = res[i];
           this.assignFinancialProperties(s, true, 'bought');
-          s.exposure = (this.portfolio.totalValue / 500 * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
+          s.exposure = this.assignExposure(true, 300);
           s.newDeal = true;
-          this.portfolio.cash -= s.exposure;
 
           this.portfolio.securities.unshift(s);
-        }
-
-        let randIndex =  Math.floor((Math.random() * 150) + 100);
-        let soldAsset = this.portfolio.securities[randIndex];
-
-        if (soldAsset) {
-          soldAsset.soldDeal = true;
-          soldAsset.status = 'sold';
-          soldAsset.dayChange = null;
-          this.portfolio.securities.splice(randIndex, 1);
-          this.portfolio.diffPrivateRemoved.push(soldAsset);
-        }
-        randIndex =  Math.floor((Math.random() * 150) + 100);
-        soldAsset = this.portfolio.securities[randIndex];
-
-        if (soldAsset) {
-          soldAsset.soldDeal = true;
-          soldAsset.status = 'sold';
-          soldAsset.dayChange = null;
-          this.portfolio.securities.splice(randIndex, 1);
-          this.portfolio.diffPrivateRemoved.push(soldAsset);
-          this.portfolio.cash += soldAsset.exposure;
-          this.portfolio.cash += soldAsset.exposure;
+          this.portfolio.diffPrivateAdded.push(s);
         }
 
         const msg = 'Privated deals imported';
@@ -199,27 +176,53 @@ export class SimulatorComponent implements OnInit {
     // discrepancy calculated in previous step
 
     // calculate discrepancies
-    const DiscrepancyExpectedReturn = this.portfolio.targetExpectedReturn - this.portfolio.expectedReturn;
-    const DiscrepancyLiquidity = this.portfolio.targetLiquidity - this.portfolio.liquidity;
-    const DiscrepancyRisk = this.portfolio.targetRisk - this.portfolio.risk;
 
     this.getPortfolioMatrics();
-    this.portfolioService.createPortfolio(this.portfolio).then(res => {
-      this.runAutomatedSimulation();
-    });
+      if (this.portfolio.discrepancyLiquidity > 0) {
+
+        this.securityService.getSecurities().then(res => {
+          if (res) {
+            for (let i = 0; i < 3; i++) {
+              const s = res[i];
+              this.assignFinancialProperties(s, false, 'hold');
+              if (s.exposure) {
+                this.portfolio.securities.push(s);
+                this.portfolio.diffPublicAdded.push(s);
+              }
+            }
+          }
+
+          this.getPortfolioMatrics();
+          this.portfolioService.createPortfolio(this.portfolio).then(r => {
+            this.runAutomatedSimulation();
+          });
+        });
+
+      } else {
+
+        this.removeEquity(false);
+        this.removeEquity(false);
+
+        this.getPortfolioMatrics();
+        this.portfolioService.createPortfolio(this.portfolio).then(res => {
+          this.runAutomatedSimulation();
+        });
+      }
+
   }
 
   /////////////////////////////////////////////
   // methods that run after each step
   getPortfolioMatrics() {
     // dummy method
+    const t0 = performance.now();
     let riskAccu = 0, expectedReturnAccu = 0, liquidityAccu = 0, counter = 0 , numPrivate = 0, numPublic = 0, equityValue = 0;
 
     this.portfolio.securities.forEach(s => {
 
-      riskAccu            += s.risk;
-      expectedReturnAccu  += s.return;
-      liquidityAccu       += s.liquidity;
+      riskAccu            += s.risk * s.exposure / this.portfolio.totalValue;
+      expectedReturnAccu  += s.return * s.exposure / this.portfolio.totalValue;
+      liquidityAccu       += s.liquidity * s.exposure / this.portfolio.totalValue;
       equityValue         += s.exposure;
 
       counter++;
@@ -227,13 +230,17 @@ export class SimulatorComponent implements OnInit {
 
     });
 
-    this.portfolio.risk = riskAccu / counter;
-    this.portfolio.expectedReturn = expectedReturnAccu / counter;
-    this.portfolio.liquidity = liquidityAccu / counter;
+    this.portfolio.risk = riskAccu;
+    this.portfolio.expectedReturn = expectedReturnAccu;
+    this.portfolio.liquidity = liquidityAccu + this.portfolio.cash / this.portfolio.totalValue * 3;
     this.portfolio.numPrivate = numPrivate;
     this.portfolio.numPublic = numPublic;
     this.portfolio.equityValue = equityValue;
     this.portfolio.totalValue = equityValue + this.portfolio.cash;
+
+    this.portfolio.discrepancyExpectedReturn = this.portfolio.targetExpectedReturn - this.portfolio.expectedReturn;
+    this.portfolio.discrepancyLiquidity = this.portfolio.targetLiquidity - this.portfolio.liquidity;
+    this.portfolio.discrepancyRisk = this.portfolio.targetRisk - this.portfolio.risk;
 
     this.messageQueue.push('Portfolio matrics calculated');
     this.messageQueue.push('Private Assets:     ' + this.portfolio.numPrivate);
@@ -245,6 +252,7 @@ export class SimulatorComponent implements OnInit {
     this.messageQueue.push('-- Expected Return: ' + Math.round(this.portfolio.expectedReturn * 100) / 100);
     this.messageQueue.push('-- Liquidity:       ' + Math.round(this.portfolio.liquidity * 100) / 100);
 
+    const t1 = performance.now();
   }
 
   /////////////////////////////////////////////
@@ -253,8 +261,6 @@ export class SimulatorComponent implements OnInit {
   savePortfolio() {
     this.portfolioService.createPortfolio(this.portfolio).then(res => {});
   }
-
-  saveSimulationSnapshot() {}
 
   saveSimulation() {
     this.simulationService.createSimulation(this.simulation).then(res => {
@@ -266,9 +272,11 @@ export class SimulatorComponent implements OnInit {
 
   /////////////////////////////////////////////
   // dummy number generators
-  assignExposure(num) {
+  assignExposure(isPrivate, num) {
+    let multiplier = 1;
+    isPrivate ? multiplier = 5 : multiplier = 1;
     const mean = this.portfolio.totalValue / 500;
-    const exposure = (mean * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
+    const exposure = (mean * (1 + Math.random() - 0.5)) * Math.random() / Math.random() * multiplier;
     if (this.portfolio.cash > 3 * exposure) {
       this.portfolio.cash = this.portfolio.cash - exposure;
       return exposure;
@@ -276,18 +284,32 @@ export class SimulatorComponent implements OnInit {
     return 0;
   }
 
+  removeEquity (isPrivate) {
+    const randIndex =  Math.floor((Math.random() * this.portfolio.securities.length) + 0);
+    const soldAsset = this.portfolio.securities[randIndex];
+
+    if (soldAsset.private === isPrivate) {
+      soldAsset.soldDeal = true;
+      soldAsset.status = 'sold';
+      soldAsset.dayChange = null;
+      this.portfolio.securities.splice(randIndex, 1);
+      this.portfolio.cash += soldAsset.exposure;
+      isPrivate ?
+        this.portfolio.diffPrivateRemoved.push(soldAsset)
+        : this.portfolio.diffPublicRemoved.push(soldAsset);
+    }
+  }
+
   assignFinancialProperties(s, isPrivate, status) {
     s.risk = Math.random();
     s.status = status;
     s.return = (this.randn_bm() ) / 5 + 0.03 ;
     s.expectedReturn = Math.random() / 20 + 0.2;
-    if (isPrivate) {
-      s.liquidity = (Math.random() + Math.random()) / 50;
-    } else {
-      s.liquidity = (Math.random() + Math.random()) * 1.6;
-    }
+    isPrivate ?
+      s.liquidity = (Math.random() + Math.random()) / 50
+      : s.liquidity = (Math.random() + Math.random()) * 2.6;
     s.private = isPrivate;
-    s.exposure = this.assignExposure(300);
+    s.exposure = this.assignExposure(isPrivate, 300);
   }
 
   /////////////////////////////////////////////
@@ -301,32 +323,15 @@ export class SimulatorComponent implements OnInit {
 
   getDateInterval(period) {
     switch (period) {
-      case '1D':
-        return 1;
-
-      case '3D':
-        return 3;
-
-      case '1W':
-        return 7;
-
-      case '2W':
-        return 14;
-
-      case '1M':
-        return 30;
-
-      case '1Q':
-        return 91;
-
-      case '2Q':
-        return 182;
-
-      case '1Y':
-        return 365;
-
-      default:
-        break;
+      case '1D': return 1;
+      case '3D': return 3;
+      case '1W': return 7;
+      case '2W': return 14;
+      case '1M': return 30;
+      case '1Q': return 91;
+      case '2Q': return 182;
+      case '1Y': return 365;
+      default: break;
     }
   }
 

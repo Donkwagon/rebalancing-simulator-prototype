@@ -44,6 +44,7 @@ export class SimulationComponent implements OnInit {
   autoScale = false;
 
   data: any[];
+  dataa: any[];
   dataReady: boolean;
 
   constructor(
@@ -52,62 +53,8 @@ export class SimulationComponent implements OnInit {
     private simulationService: SimulationService,
     private portfolioService: PortfolioService,
     private route: ActivatedRoute) {
-    const single = [
-      {
-        'name': 'Germany',
-        'value': 8940000
-      },
-      {
-        'name': 'USA',
-        'value': 5000000
-      },
-      {
-        'name': 'France',
-        'value': 7200000
-      }
-    ];
-    const multi = [
-      {
-        'name': 'Germany',
-        'series': [
-          {
-            'name': '2010',
-            'value': 7300000
-          },
-          {
-            'name': '2011',
-            'value': 8940000
-          }
-        ]
-      },
-      {
-        'name': 'USA',
-        'series': [
-          {
-            'name': '2010',
-            'value': 7870000
-          },
-          {
-            'name': '2011',
-            'value': 8270000
-          }
-        ]
-      },
-      {
-        'name': 'France',
-        'series': [
-          {
-            'name': '2010',
-            'value': 5000002
-          },
-          {
-            'name': '2011',
-            'value': 5800000
-          }
-        ]
-      }
-    ];
     this.data = [];
+    this.dataa = [];
     this.dataReady = false;
   }
 
@@ -137,24 +84,66 @@ export class SimulationComponent implements OnInit {
         const equityValue = {'name': 'equity value', 'series': []};
         const cash = {'name': 'cash value', 'series': []};
 
+        const discrepancyExpectedReturn = {'name': 'expected return discrepancy', 'series': []};
+        const discrepancyRisk = {'name': 'risk discrepancy', 'series': []};
+        const discrepancyLiquidity = {'name': 'liquidity discrepancy', 'series': []};
+
+        const rebalancedExpectedReturn = {'name': 'expected return balanced', 'series': []};
+        const rebalancedRisk = {'name': 'risk balanced', 'series': []};
+        const rebalancedLiquidity = {'name': 'liquidity balanced', 'series': []};
+
         for (let i = 0; i < this.portfolios.length; i++) {
           const el = this.portfolios[i];
-          totalValue.series.push({
-            'name': i,
-            'value': el.totalValue ? el.totalValue / 1000000000 : 0
-          });
-          equityValue.series.push({
-            'name': i,
-            'value': el.equityValue ? el.equityValue / 1000000000 : 0
-          });
-          cash.series.push({
-            'name': i,
-            'value': el.cash ? el.cash / 1000000000 : 0
-          });
+          if (el.date) {
+            totalValue.series.push({
+              'name': el.date,
+              'value': el.totalValue ? el.totalValue / 1000000000 : 0
+            });
+            equityValue.series.push({
+              'name': el.date,
+              'value': el.equityValue ? el.equityValue / 1000000000 : 0
+            });
+            cash.series.push({
+              'name': el.date,
+              'value': el.cash ? el.cash / 1000000000 : 0
+            });
+
+
+            discrepancyExpectedReturn.series.push({
+              'name': el.date,
+              'value': el.discrepancyExpectedReturn ? el.discrepancyExpectedReturn : 0
+            });
+            discrepancyRisk.series.push({
+              'name': el.date,
+              'value': el.discrepancyRisk ? el.discrepancyRisk : 0
+            });
+            discrepancyLiquidity.series.push({
+              'name': el.date,
+              'value': el.discrepancyLiquidity ? el.discrepancyLiquidity : 0
+            });
+
+
+            rebalancedExpectedReturn.series.push({
+              'name': el.date,
+              'value': el.rebalancedExpectedReturn ? el.rebalancedExpectedReturn : 0
+            });
+            rebalancedRisk.series.push({
+              'name': el.date,
+              'value': el.rebalancedRisk ? el.rebalancedRisk : 0
+            });
+            rebalancedLiquidity.series.push({
+              'name': el.date,
+              'value': el.rebalancedLiquidity ? el.rebalancedLiquidity : 0
+            });
+
+          }
         }
         this.data.push(totalValue);
         this.data.push(equityValue);
         this.data.push(cash);
+        this.dataa.push(discrepancyExpectedReturn);
+        this.dataa.push(discrepancyRisk);
+        this.dataa.push(discrepancyLiquidity);
         this.dataReady = true;
       }
     });

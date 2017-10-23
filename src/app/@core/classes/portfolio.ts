@@ -20,9 +20,13 @@ export class Portfolio {
     targetRisk: number;
     targetLiquidity: number;
 
-    discrepancyExpectedReturn: String;
-    discrepancyLiquidity: String;
-    discrepancyRisk: String;
+    discrepancyExpectedReturn: number;
+    discrepancyLiquidity: number;
+    discrepancyRisk: number;
+
+    rebalancedExpectedReturn: number;
+    rebalancedLiquidity: number;
+    rebalancedRisk: number;
 
     totalValue: number;
     equityValue: number;

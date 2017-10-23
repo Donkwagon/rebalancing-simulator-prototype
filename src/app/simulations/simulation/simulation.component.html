@@ -1,21 +1,28 @@
 <div class="page c f1 ofys" *ngIf="simulation">
-  <div>
-      <span class="caption">Simulation Name</span>
-      <span class="value">{{simulation.simulationName}}</span>
-  
-      <span class="caption">Rebalancing Method</span>
-      <span class="value">{{simulation.rebalancingMethod}}</span>
+  <div class="c">
+    <div class="r">
+      <span class="caption">Simulation Name&nbsp;</span>
+        <span class="value">{{simulation.simulationName}}</span>
+    </div>
 
-      <span class="caption">Created At</span>
+    <div class="r">
+      <span class="caption">Rebalancing Method&nbsp;</span>
+      <span class="value">{{simulation.rebalancingMethod}}</span>
+    </div>
+
+    <div class="r">
+      <span class="caption">Created At&nbsp;</span>
       <span class="value">{{simulation.createDate | date: 'medium'}}</span>
+    </div>
+
+    <div class="r">
+      <span class="caption">Period&nbsp;</span>
+      <span class="value">{{simulation.period}}</span>
+    </div>
   </div>
 
-
-  <pre>
-    {{simulation | json}}
-  </pre>
-
-  <div class="chart dark" *ngIf="dataReady" >
+  <div class="chart dark r" *ngIf="dataReady" >
+    <div class="chart-block" class="f1">
       <ngx-charts-line-chart
       [scheme]="colorScheme"
       [results]="data"
@@ -30,30 +37,61 @@
       [autoScale]="autoScale"
       (select)="onSelect($event)">
       </ngx-charts-line-chart>
+    </div>
+
+    <div class="chart-block" class="f1">
+        <ngx-charts-line-chart
+        [scheme]="colorScheme"
+        [results]="dataa"
+        [gradient]="gradient"
+        [xAxis]="showXAxis"
+        [yAxis]="showYAxis"
+        [legend]="showLegend"
+        [showXAxisLabel]="showXAxisLabel"
+        [showYAxisLabel]="showYAxisLabel"
+        [xAxisLabel]="xAxisLabel"
+        [yAxisLabel]="yAxisLabel"
+        [autoScale]="autoScale"
+        (select)="onSelect($event)">
+        </ngx-charts-line-chart>
+      </div>
+
   </div> 
 
   <table>
+    
     <tr>
       <th>Date</th>
-      <th>Expected Return</th>
+      <th>Expct. Return</th>
       <th>Liquidity</th>
       <th>Risk</th>
-      <th>Equity Value</th>
-      <th>Cash Value</th>
-      <th>Total Value</th>
+      <th>Total</th>
+      <th>Equity</th>
+      <th>Cash</th>
       <th>Num Private</th>
       <th>Num Public</th>
+      <th>Private +</th>
+      <th>Private -</th>
+      <th>Public +</th>
+      <th>Public -</th>
     </tr>
+
     <tr *ngFor="let p of portfolios">
-        <td class="ar">{{p.date}}</td>
-        <td class="ar">{{p.expectedReturn*100 | number : '1.2-2' }}%</td>
-        <td class="ar">{{p.liquidity | number : '1.2-2' }}</td>
-        <td class="ar">{{p.risk | number : '1.2-2' }}</td>
-        <td class="ar">{{p.equityValue/1000000000 | number : '1.2-2' }}</td>
-        <td class="ar">{{p.totalValue/1000000000 | number : '1.2-2' }}</td>
-        <td class="ar">{{p.cash/1000000000 | number : '1.2-2' }}</td>
-        <td class="ar">{{p.numPrivate | number : '1.2-2' }}</td>
-        <td class="ar">{{p.numPublic | number : '1.2-2' }}</td>
+      <td class="ar">{{p.date | date}}</td>
+      <td class="ar">{{p.expectedReturn*100 | number : '1.2-2' }}%</td>
+      <td class="ar">{{p.liquidity | number : '1.2-2' }}</td>
+      <td class="ar">{{p.risk | number : '1.2-2' }}</td>
+      <td class="ar">{{p.totalValue/1000000000 | number : '1.2-2' }}</td>
+      <td class="ar">{{p.equityValue/1000000000 | number : '1.2-2' }}</td>
+      <td class="ar">{{p.cash/1000000000 | number : '1.2-2' }}</td>
+      <td class="ar">{{p.numPrivate | number : '1.0-2' }}</td>
+      <td class="ar">{{p.numPublic | number : '1.0-2' }}</td>
+      <td class="ar">{{p.diffPrivateAdded.length}}</td>
+      <td class="ar">{{p.diffPrivateRemoved.length}}</td>
+      <td class="ar">{{p.diffPublicAdded.length}}</td>
+      <td class="ar">{{p.diffPublicRemoved.length}}</td>
     </tr>
   </table>
+  <div class="footer">
+  </div>
 </div>
