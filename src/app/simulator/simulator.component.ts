@@ -120,7 +120,9 @@ export class SimulatorComponent implements OnInit {
   runAutomatedSimulation() {
     if (this.autoLoopingIndex < 30) {
       this.autoLoopingIndex++;
-      this.updateReturns();
+      setTimeout(() => {
+        this.updateReturns();
+      },200);
     }
   }
 
@@ -142,9 +144,9 @@ export class SimulatorComponent implements OnInit {
     this.messageQueue.push('Market return updated');
 
     if (this.simulation.simulationType === 'batch') {
-      setTimeout(() => {
-        this.updatePrivateDeals();
-      }, 50);
+      this.getPortfolioMatrics();
+      this.savePortfolio();
+      this.updatePrivateDeals();
     }
   }
 
@@ -186,11 +188,14 @@ export class SimulatorComponent implements OnInit {
           soldAsset.dayChange = null;
           this.portfolio.securities.splice(randIndex, 1);
           this.portfolio.diffPrivateRemoved.push(soldAsset);
+          this.assignableValue += soldAsset.exposure;
+          this.portfolio.cash += soldAsset.exposure;
         }
 
         const msg = 'Privated deals imported';
         this.messageQueue.push(msg);
         this.getPortfolioMatrics();
+        this.savePortfolio();
 
         if (this.simulation.simulationType === 'batch') {
           this.updateRebalancingDeals();
@@ -211,6 +216,7 @@ export class SimulatorComponent implements OnInit {
     const DiscrepancyLiquidity = this.portfolio.targetLiquidity - this.portfolio.liquidity;
     const DiscrepancyRisk = this.portfolio.targetRisk - this.portfolio.risk;
 
+    this.getPortfolioMatrics();
     this.portfolioService.createPortfolio(this.portfolio).then(res => {
       this.runAutomatedSimulation();
     });

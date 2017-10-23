@@ -32,18 +32,20 @@ export class SimulationComponent implements OnInit {
   gradient = false;
   showLegend = true;
   showXAxisLabel = true;
-  xAxisLabel = 'Country';
+  xAxisLabel = 'Time';
   showYAxisLabel = true;
-  yAxisLabel = 'Population';
+  yAxisLabel = 'Value';
 
   colorScheme = {
     domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA']
   };
 
   // line, area
-  autoScale = true;
+  autoScale = false;
 
-  view: any[] = [700, 400];
+  data: any[];
+  dataReady: boolean;
+
   constructor(
     private securityService: SecurityService,
     private crawlerService: CrawlerService,
@@ -105,7 +107,9 @@ export class SimulationComponent implements OnInit {
         ]
       }
     ];
-    Object.assign(this, { single, multi});
+    
+    this.data = [];
+    this.dataReady = false;
   }
 
   ngOnInit() {
@@ -130,6 +134,31 @@ export class SimulationComponent implements OnInit {
       if (res) {
         console.log(res);
         this.portfolios = res;
+        let totalValue = {'name': "total value",'series':[]};
+        let equityValue = {'name': "equity value",'series':[]};
+        let cash = {'name': "cash value",'series':[]};
+        for (var i = 0; i < this.portfolios.length; i++) {
+          let el = this.portfolios[i];
+          totalValue.series.push({
+            'name':i,
+            'value':el.totalValue ? el.totalValue/1000000000 : 0
+          });
+          equityValue.series.push({
+            'name':i,
+            'value':el.equityValue ? el.equityValue/1000000000:0
+          });
+          cash.series.push({
+            'name':i,
+            'value':el.cash ? el.cash/1000000000 : 0
+          });
+        }
+        this.data.push(totalValue);
+        this.data.push(equityValue);
+        this.data.push(cash);
+        let data = this.data;
+        console.log(data);
+        Object.assign(this, {data});
+        this.dataReady = true;
       }
     });
   }

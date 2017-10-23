@@ -101,6 +101,9 @@ a:active {color:inherit;text-decoration:none;}
     }
 }
 
+.app-main{
+    align-items:stretch;
+}
 table{
     width:100%;
     border-collapse: collapse;
@@ -162,10 +165,12 @@ table{
 }
 
 .page{
-    height:700px;
+    flex-direction:column!important; flex-grow:1!important;
+    height:100%;
 }
 
 
 app-simulator, app-simulations, app-reports{
     flex-direction:column!important; flex-grow:1!important;
+    height:100%;
 }

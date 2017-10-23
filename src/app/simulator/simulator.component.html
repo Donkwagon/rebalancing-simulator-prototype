@@ -33,11 +33,6 @@
       <!-- <button (click)="crawl()">Crawl</button> -->
     </form>
   </div>
-  <div class="spray-caption c" *ngIf="!configStatus">
-    <br>
-    <br>
-    <h1>configure simulation settings</h1>
-  </div>
   <div class="app-main f1 r" *ngIf="configStatus">
     <div class="app-panel c f1" *ngIf="simulation.simulationType == 'manual'">
       <div class="step r">
@@ -96,6 +91,11 @@
     </div>
   </div>
 
+  <div class="spray-caption c" *ngIf="!configStatus">
+    <br>
+    <br>
+    <h1>configure simulation settings</h1>
+  </div>
   <div class="session-control-panel r">
     <div class="f1"></div>
     <div class="control-action">

@@ -9,7 +9,7 @@ function handleError(res, reason, message, code) {
 }
 
 security.get("", function(req, res) {
-  db.collection(SECURITY_COLLECTION).aggregate([ { $sample: { size: 100 } } ], { Symbol: 1, Issuer: 1 }).limit(100).toArray(function(err, docs) {
+  db.collection(SECURITY_COLLECTION).aggregate([ { $sample: { size: 50 } } ], { Symbol: 1, Issuer: 1 }).limit(50).toArray(function(err, docs) {
     if (err) {
       handleError(res, err.message, "Failed to get securities.");
     } else {
