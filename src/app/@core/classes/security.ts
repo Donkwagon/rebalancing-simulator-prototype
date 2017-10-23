@@ -15,25 +15,13 @@ export class Security {
     newDeal: boolean;
     exposure: number;
 
-    status : string;
+    status: string;
 
     symbol: String;
     securityName: String;
-
-    industry: String;
-    sector: String;
-    
-    exhange: String;
     
     created_at: Date;
     updated_at: Date;
-
-    earnings: any;
-    company: any;
-    quote: any;
-    news: any;
-    financials: any;
-    logo: any;
 
     IEXListed: Boolean;
 

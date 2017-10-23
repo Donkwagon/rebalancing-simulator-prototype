@@ -6,6 +6,7 @@ export class Portfolio {
     state: string; // INIT, PRI_DEALS, R_UPDATED, REBLANCED
 
     securities: any[];
+
     diffPrivateAdded: any[];
     diffPrivateRemoved: any[];
     diffPublicAdded: any[];
@@ -19,8 +20,14 @@ export class Portfolio {
     targetRisk: number;
     targetLiquidity: number;
 
+    discrepancyExpectedReturn: String;
+    discrepancyLiquidity: String;
+    discrepancyRisk: String;
+
     totalValue: number;
     equityValue: number;
+    privateEquityValue: number;
+    publicEquityValue: number;
     cash: number;
 
     numPrivate: number;

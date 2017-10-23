@@ -1,10 +1,14 @@
 <div class="page c f1 ofys" *ngIf="simulation">
+  <div>
+      <span class="caption">Simulation Name</span>
+      <span class="value">{{simulation.simulationName}}</span>
+  
+      <span class="caption">Rebalancing Method</span>
+      <span class="value">{{simulation.rebalancingMethod}}</span>
 
-    <span class="caption">Simulation Name</span>
-    <span class="value">{{simulation.simulationName}}</span>
-
-    <span class="caption">Rebalancing Method</span>
-    <span class="value">{{simulation.rebalancingMethod}}</span>
+      <span class="caption">Created At</span>
+      <span class="value">{{simulation.createDate | date: 'medium'}}</span>
+  </div>
 
 
   <pre>
@@ -30,6 +34,7 @@
 
   <table>
     <tr>
+      <th>Date</th>
       <th>Expected Return</th>
       <th>Liquidity</th>
       <th>Risk</th>
@@ -40,6 +45,7 @@
       <th>Num Public</th>
     </tr>
     <tr *ngFor="let p of portfolios">
+        <td class="ar">{{p.date}}</td>
         <td class="ar">{{p.expectedReturn*100 | number : '1.2-2' }}%</td>
         <td class="ar">{{p.liquidity | number : '1.2-2' }}</td>
         <td class="ar">{{p.risk | number : '1.2-2' }}</td>

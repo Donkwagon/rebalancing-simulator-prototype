@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { SecurityService } from './../@core/services/security.service';
 import { SimulationService } from './../@core/services/simulation.service';
 import { PortfolioService } from './../@core/services/portfolio.service';
-import { CrawlerService } from './../@core/services/crawler.service';
 
 import { Security } from './../@core/classes/security';
 import { Portfolio } from './../@core/classes/portfolio';
@@ -13,22 +12,17 @@ import { Simulation } from './../@core/classes/simulation';
   selector: 'app-simulator',
   templateUrl: './simulator.component.html',
   styleUrls: ['./simulator.component.scss'],
-  providers: [ SecurityService, SimulationService, PortfolioService, CrawlerService ]
+  providers: [ SecurityService, SimulationService, PortfolioService ]
 })
 
 export class SimulatorComponent implements OnInit {
 
-  totalValue: number;
-  assignableValue: number;
-  cashValue: number;
-  simulation: Simulation;
   configStatus: boolean;
 
-  assetPool: Security[];
+  simulation: Simulation;
 
   portfolio: Portfolio;
 
-  securities: Security[];
   messageQueue: any[];
   dayChange: boolean;
 
@@ -36,7 +30,6 @@ export class SimulatorComponent implements OnInit {
 
   constructor(
     private securityService: SecurityService,
-    private crawlerService: CrawlerService,
     private simulationService: SimulationService,
     private portfolioService: PortfolioService
   ) {
@@ -46,9 +39,6 @@ export class SimulatorComponent implements OnInit {
     // manual steps init
     this.dayChange = false;
     this.configStatus = false;
-
-    this.totalValue = 100000000000;
-    this.assignableValue = 100000000000;
 
     this.autoLoopingIndex = 0;
 
@@ -69,33 +59,29 @@ export class SimulatorComponent implements OnInit {
       if (simulation) {
         this.simulation = simulation;
         this.portfolio = new Portfolio(this.simulation);
+        this.portfolio.totalValue = 100000000000;
+        this.portfolio.cash = 100000000000;
         this.portfolio.securities = [];
         this.configStatus = true;
 
-
         this.securityService.getSecurities().then(res => {
-
           if (res) {
-
             res.forEach(s => {
               this.assignFinancialProperties(s, false, 'hold');
               if (s.exposure) {this.portfolio.securities.push(s); }
             });
-
           }
         });
 
         this.securityService.getSecurities().then(res => {
           if (res) {
-
             res.forEach(s => {
-              if (this.assignableValue) {
+              if (this.portfolio.cash) {
                 this.assignFinancialProperties(s, true, 'hold');
                 if (s.exposure) {
                   this.portfolio.securities.push(s);
                 } else {
-                  this.cashValue = this.assignableValue;
-                  this.assignableValue = 0;
+                  this.portfolio.cash = 0;
                 }
               }
             });
@@ -120,9 +106,14 @@ export class SimulatorComponent implements OnInit {
   runAutomatedSimulation() {
     if (this.autoLoopingIndex < 30) {
       this.autoLoopingIndex++;
-      setTimeout(() => {
-        this.updateReturns();
-      },200);
+      const d = new Date();
+      const date = new Date(this.simulation.startDate);
+      const dateOffset = (this.autoLoopingIndex - 1) * (this.getDateInterval(this.simulation.period));
+      d.setMonth(date.getFullYear());
+      d.setMonth(date.getMonth());
+      d.setDate(date.getDate() + (this.autoLoopingIndex - 1));
+      this.portfolio.date = d;
+      this.updateReturns();
     }
   }
 
@@ -144,8 +135,6 @@ export class SimulatorComponent implements OnInit {
     this.messageQueue.push('Market return updated');
 
     if (this.simulation.simulationType === 'batch') {
-      this.getPortfolioMatrics();
-      this.savePortfolio();
       this.updatePrivateDeals();
     }
   }
@@ -162,7 +151,7 @@ export class SimulatorComponent implements OnInit {
         for (let i = 0; i < len; i++) {
           const s = res[i];
           this.assignFinancialProperties(s, true, 'bought');
-          s.exposure = (this.totalValue / 500 * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
+          s.exposure = (this.portfolio.totalValue / 500 * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
           s.newDeal = true;
           this.portfolio.cash -= s.exposure;
 
@@ -188,14 +177,12 @@ export class SimulatorComponent implements OnInit {
           soldAsset.dayChange = null;
           this.portfolio.securities.splice(randIndex, 1);
           this.portfolio.diffPrivateRemoved.push(soldAsset);
-          this.assignableValue += soldAsset.exposure;
+          this.portfolio.cash += soldAsset.exposure;
           this.portfolio.cash += soldAsset.exposure;
         }
 
         const msg = 'Privated deals imported';
         this.messageQueue.push(msg);
-        this.getPortfolioMatrics();
-        this.savePortfolio();
 
         if (this.simulation.simulationType === 'batch') {
           this.updateRebalancingDeals();
@@ -246,8 +233,7 @@ export class SimulatorComponent implements OnInit {
     this.portfolio.numPrivate = numPrivate;
     this.portfolio.numPublic = numPublic;
     this.portfolio.equityValue = equityValue;
-    this.portfolio.totalValue = equityValue + this.cashValue;
-    this.portfolio.cash = this.cashValue;
+    this.portfolio.totalValue = equityValue + this.portfolio.cash;
 
     this.messageQueue.push('Portfolio matrics calculated');
     this.messageQueue.push('Private Assets:     ' + this.portfolio.numPrivate);
@@ -281,10 +267,10 @@ export class SimulatorComponent implements OnInit {
   /////////////////////////////////////////////
   // dummy number generators
   assignExposure(num) {
-    const mean = this.totalValue / 500;
+    const mean = this.portfolio.totalValue / 500;
     const exposure = (mean * (1 + Math.random() - 0.5)) * Math.random() / Math.random();
-    if (this.assignableValue > 3 * exposure) {
-      this.assignableValue = this.assignableValue - exposure;
+    if (this.portfolio.cash > 3 * exposure) {
+      this.portfolio.cash = this.portfolio.cash - exposure;
       return exposure;
     }
     return 0;
@@ -313,11 +299,35 @@ export class SimulatorComponent implements OnInit {
     return Math.sqrt( -1.0 * Math.log( u ) ) * Math.cos( 1.0 * Math.PI * v );
   }
 
-  crawl() {
-    this.crawlerService.RunCrawler().then(res => {
-      if (res) {
-      }
-    });
+  getDateInterval(period) {
+    switch (period) {
+      case '1D':
+        return 1;
+
+      case '3D':
+        return 3;
+
+      case '1W':
+        return 7;
+
+      case '2W':
+        return 14;
+
+      case '1M':
+        return 30;
+
+      case '1Q':
+        return 91;
+
+      case '2Q':
+        return 182;
+
+      case '1Y':
+        return 365;
+
+      default:
+        break;
+    }
   }
 
 }
