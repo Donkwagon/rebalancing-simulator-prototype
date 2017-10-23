@@ -38,6 +38,7 @@ export class Portfolio {
     numPublic: number;
 
     date: any;
+    dateTimestamp: number;
 
     diffs: any;
 

@@ -7,7 +7,6 @@ export class Security {
 
     return: number;
     dayChange: number;
-    gain: boolean;
     volatility: number;
     risk: number;
     liquidity: number;
@@ -19,7 +18,6 @@ export class Security {
 
     symbol: String;
     securityName: String;
-    
     created_at: Date;
     updated_at: Date;
 

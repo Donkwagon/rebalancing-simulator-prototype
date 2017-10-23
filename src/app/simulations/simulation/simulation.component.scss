@@ -14,4 +14,14 @@
 .page{
     background-color:#fff1e5;
     padding:0 1rem;
+
+    .page-cover{
+        border:#999 solid 1px;
+        padding:1rem;
+        margin:1rem 0;
+
+        .caption{
+            width:12rem;
+        }
+    }
 }

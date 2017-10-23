@@ -54,40 +54,42 @@
         <button (click)="updateRebalancingDeals()">Import</button>
       </div>
     </div>
-    <div class="app-body c f2">
-      <div class="f162 c ofys">
+    <div class="app-body r f2">
+      <div class="f2 c ofys">
 
         <table>
           <tr>
-            <th>Asset Type</th>
-            <th>Asset Name</th>
+            <th>Type</th>
+            <th>Name</th>
             <th>Status</th>
             <th>Beta</th>
             <th>ROI</th>
-            <th>Expct. ROI</th>
+            <th>Expct.</th>
             <th>Liquidity</th>
             <th>Exposure(M)</th>
             <th *ngIf="dayChange">Day Chg.</th>
           </tr>
           <tr *ngFor="let s of portfolio.securities" [ngClass]="{'new-deal' : s.newDeal, 'sold-deal': s.soldDeal}">
-            <td class="ac">{{s.private ? "private":"public"}}</td>
+            <td class="ac">{{s.private ? "PRI":"PUB"}}</td>
             <td>{{s.Symbol}} {{s.Issuer}}</td>
             <td class="ac">{{s.status}}</td>
             <td class="ar">{{s.risk | number : '1.2-2' }}</td>
-            <td class="ar"[ngClass]="{'gain' : s.return > 0, 'loss':s.return < 0}">{{s.return*100 | number : '1.2-2' }}%</td>
-            <td class="ar"[ngClass]="{'gain' : s.expectedReturn > 0, 'loss':s.expectedReturn < 0}">{{s.expectedReturn*100 | number : '1.2-2' }}%</td>
+            <td class="ar">{{s.return*100 | number : '1.2-2' }}%</td>
+            <td class="ar">{{s.expectedReturn*100 | number : '1.2-2' }}%</td>
             <td class="ar">{{s.liquidity | number : '1.2-2' }}</td>
             <td class="ar">{{s.exposure/1000000| number:'.1'}}</td>
-            <td class="ar" class="new-deal ar"  [ngClass]="{'gain' : s.gain, 'loss':!s.gain}" *ngIf="dayChange">{{s.dayChange*100 | number : '1.2-2' }}%</td>
+            <td class="ar" class="new-deal ar"  *ngIf="dayChange">{{s.dayChange*100 | number : '1.2-2' }}%</td>
           </tr>
         </table>
 
       </div>
-      <div class="status-panel f1 c ofys">
+
+      <div #scrollMe class="status-panel f1 c ofys">
         <div class="status-msg" *ngFor="let msg of messageQueue">
           {{msg}}
         </div>
       </div>
+
     </div>
   </div>
 

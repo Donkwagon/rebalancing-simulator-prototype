@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { AfterViewChecked, ElementRef, ViewChild } from '@angular/core';
+
 
 import { SecurityService } from './../@core/services/security.service';
 import { SimulationService } from './../@core/services/simulation.service';
@@ -28,6 +30,8 @@ export class SimulatorComponent implements OnInit {
 
   autoLoopingIndex: number;
 
+  @ViewChild('scrollMe') private myScrollContainer: ElementRef;
+
   constructor(
     private securityService: SecurityService,
     private simulationService: SimulationService,
@@ -48,6 +52,7 @@ export class SimulatorComponent implements OnInit {
     // set simulation target values
     const targetExpectedReturn = 0.15, targetRisk = 0.5, targetLiquidity = 1;
     this.simulation = new Simulation(targetExpectedReturn, targetRisk, targetLiquidity);
+    this.scrollToBottom();
   }
 
 
@@ -79,7 +84,7 @@ export class SimulatorComponent implements OnInit {
                 if (s.exposure) { this.portfolio.securities.push(s); }
               }
             });
-            this.messageQueue.push('Portfolio initialized');
+            this.pushToMsgQueue('Portfolio initialized');
           }
 
           this.getPortfolioMatrics();
@@ -118,8 +123,7 @@ export class SimulatorComponent implements OnInit {
 
     this.portfolio.securities.forEach(s => {
       const growthFactor = this.getDateInterval(this.simulation.period ) / 365;
-      const r = (Math.random() - 0.5 + growthFactor * 30 ) / 50 ;
-      r > 0 ? s.gain = true : s.gain = false;
+      const r = (Math.random() - 0.5) / 50 + growthFactor * s.expectedReturn * 3;
       s.dayChange = r;
       s.expectedReturn += r / 100;
       s.exposure = s.exposure * (1 + r);
@@ -128,7 +132,7 @@ export class SimulatorComponent implements OnInit {
     });
 
     this.dayChange = true;
-    this.messageQueue.push('Market return updated');
+    this.pushToMsgQueue('Market return updated');
 
     if (this.simulation.simulationType === 'batch') {
       this.updatePrivateDeals();
@@ -159,7 +163,7 @@ export class SimulatorComponent implements OnInit {
         }
 
         const msg = 'Privated deals imported';
-        this.messageQueue.push(msg);
+        this.pushToMsgQueue(msg);
 
         if (this.simulation.simulationType === 'batch') {
           this.updateRebalancingDeals();
@@ -242,15 +246,15 @@ export class SimulatorComponent implements OnInit {
     this.portfolio.discrepancyLiquidity = this.portfolio.targetLiquidity - this.portfolio.liquidity;
     this.portfolio.discrepancyRisk = this.portfolio.targetRisk - this.portfolio.risk;
 
-    this.messageQueue.push('Portfolio matrics calculated');
-    this.messageQueue.push('Private Assets:     ' + this.portfolio.numPrivate);
-    this.messageQueue.push('Public Assets:      ' + this.portfolio.numPublic);
-    this.messageQueue.push('Cash:               ' + Math.round(this.portfolio.cash / 1000000000 * 1000) / 1000 + 'B');
-    this.messageQueue.push('Equity:             ' + Math.round(this.portfolio.equityValue / 1000000000 * 1000) / 1000 + 'B');
-    this.messageQueue.push('Total Value:        ' + Math.round(this.portfolio.totalValue / 1000000000 * 1000) / 1000 + 'B');
-    this.messageQueue.push('-- Risk:            ' + Math.round(this.portfolio.risk * 100) / 100);
-    this.messageQueue.push('-- Expected Return: ' + Math.round(this.portfolio.expectedReturn * 100) / 100);
-    this.messageQueue.push('-- Liquidity:       ' + Math.round(this.portfolio.liquidity * 100) / 100);
+    this.pushToMsgQueue('Portfolio matrics calculated');
+    this.pushToMsgQueue('Private Assets:     ' + this.portfolio.numPrivate);
+    this.pushToMsgQueue('Public Assets:      ' + this.portfolio.numPublic);
+    this.pushToMsgQueue('Cash:               ' + Math.round(this.portfolio.cash / 1000000000 * 1000) / 1000 + 'B');
+    this.pushToMsgQueue('Equity:             ' + Math.round(this.portfolio.equityValue / 1000000000 * 1000) / 1000 + 'B');
+    this.pushToMsgQueue('Total Value:        ' + Math.round(this.portfolio.totalValue / 1000000000 * 1000) / 1000 + 'B');
+    this.pushToMsgQueue('-- Risk:            ' + Math.round(this.portfolio.risk * 100) / 100);
+    this.pushToMsgQueue('-- Expected Return: ' + Math.round(this.portfolio.expectedReturn * 100) / 100);
+    this.pushToMsgQueue('-- Liquidity:       ' + Math.round(this.portfolio.liquidity * 100) / 100);
 
     const t1 = performance.now();
   }
@@ -335,4 +339,13 @@ export class SimulatorComponent implements OnInit {
     }
   }
 
+  pushToMsgQueue(msg) {
+    this.messageQueue.push(msg);
+    this.scrollToBottom();
+  }
+  scrollToBottom(): void {
+    try {
+        this.myScrollContainer.nativeElement.scrollTop = this.myScrollContainer.nativeElement.scrollHeight;
+    } catch (err) { }
+}
 }

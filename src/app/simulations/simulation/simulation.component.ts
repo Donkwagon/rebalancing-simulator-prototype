@@ -78,7 +78,15 @@ export class SimulationComponent implements OnInit {
   getPortfolios() {
     this.portfolioService.getPortfoliosBySimulation(this.simulationId).then(res => {
       if (res) {
+        res.forEach(el => {
+          const date = new Date(el.date);
+          el.dateTimestamp = date.getTime();
+        });
+        res.sort((a, b) => {
+          return a.dateTimestamp - b.dateTimestamp;
+        });
         this.portfolios = res;
+        console.log(res);
 
         const totalValue = {'name': 'total value', 'series': []};
         const equityValue = {'name': 'equity value', 'series': []};

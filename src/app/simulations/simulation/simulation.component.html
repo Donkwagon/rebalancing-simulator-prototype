@@ -1,5 +1,5 @@
-<div class="page c f1 ofys" *ngIf="simulation">
-  <div class="c">
+<div class="page c f1 ofys" *ngIf="simulation && portfolios">
+  <div class="page-cover c">
     <div class="r">
       <span class="caption">Simulation Name&nbsp;</span>
         <span class="value">{{simulation.simulationName}}</span>
@@ -19,6 +19,17 @@
       <span class="caption">Period&nbsp;</span>
       <span class="value">{{simulation.period}}</span>
     </div>
+    
+      <div class="r">
+        <span class="caption">Num of Periods&nbsp;</span>
+        <span class="value">{{portfolios.length}}</span>
+      </div>
+
+
+    <div class="r">
+        <span class="caption">Simulation Type&nbsp;</span>
+        <span class="value">{{simulation.simulationType}} simulation</span>
+      </div>
   </div>
 
   <div class="chart dark r" *ngIf="dataReady" >
